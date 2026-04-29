@@ -4,11 +4,21 @@
 #include <fstream>
 #include <map>
 #include <queue>
+#include <set>
 #include <stdexcept>
 #include <string>
 #include <utility>
 
-Graph::Graph(int x, int y) : rowCount(x), colCount(y),nodes(x, std::vector<typeNode>(y)) {
+namespace {
+bool isValidTileType(char type) {
+    return type == '*' || type == 'X' || type == 'L' ||
+           type == 'Z' || type == 'O' ||
+           (type >= '0' && type <= '9');
+}
+}
+
+Graph::Graph(int x, int y)
+    : rowCount(x), colCount(y), nodes(x, std::vector<typeNode>(y)) {
     if (x <= 0 || y <= 0) {
         throw std::invalid_argument("Ukuran graph harus lebih dari 0.");
     }
@@ -87,11 +97,20 @@ bool Graph::isWalkable(int x, int y) const {
     return isInside(x, y) && !isWall(x, y) && !isLava(x, y);
 }
 
+bool Graph::isImportantTile(int x, int y) const {
+    if (!isInside(x, y)) {
+        return false;
+    }
+
+    char type = nodes[x][y].type;
+    return type == 'O' || (type >= '0' && type <= '9');
+}
+
 int Graph::getHeuristicCost(int x, int y) const {
-    if (!isInside(goal.x, goal.y)) {
+    if (!isInside(goal.row, goal.col)) {
         return 0;
     }
-    return std::abs(goal.x - x) + std::abs(goal.y - y);
+    return std::abs(goal.row - x) + std::abs(goal.col - y);
 }
 
 SimpleGraph::~SimpleGraph() {
@@ -113,12 +132,31 @@ SimpleNode* SimpleGraph::addNode(int x, int y) {
     node->col = y;
     node->x = y;
     node->y = -x;
+    node->type = '*';
+    node->canBranch = false;
 
     nodes.push_back(node);
     return node;
 }
 
-void SimpleGraph::addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction) {
+SimpleNode* SimpleGraph::getOrAddNode(int x, int y, char type, bool canBranch) {
+    for (SimpleNode* node : nodes) {
+        if (node->row == x && node->col == y) {
+            if (node->type == '*') {
+                node->type = type;
+            }
+            node->canBranch = node->canBranch || canBranch;
+            return node;
+        }
+    }
+
+    SimpleNode* node = addNode(x, y);
+    node->type = type;
+    node->canBranch = canBranch;
+    return node;
+}
+
+void SimpleGraph::addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction, bool canStopAtNeighbor) {
     if (node == nullptr) {
         throw std::out_of_range("Node asal tidak ditemukan.");
     }
@@ -132,6 +170,7 @@ void SimpleGraph::addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEd
     edge.costEdge = costEdge;
     edge.costPrediction = costPrediction;
     edge.direction = direction;
+    edge.canStopAtNeighbor = canStopAtNeighbor;
     node->neighbors.push_back(edge);
 }
 
@@ -240,6 +279,7 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
     int currentX = startX;
     int currentY = startY;
     bool hasMoved = false;
+    int costFromPreviousImportant = 0;
 
     while (true) {
         int nextX = currentX + deltaX;
@@ -255,8 +295,19 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
             }
 
             result.valid = true;
-            result.stopX = currentX;
-            result.stopY = currentY;
+            if (!result.points.empty() &&
+                result.points.back().row == currentX &&
+                result.points.back().col == currentY) {
+                result.points.back().isStopPoint = true;
+            } else {
+                SlidePoint point;
+                point.row = currentX;
+                point.col = currentY;
+                point.costFromPrevious = costFromPreviousImportant;
+                point.type = graph.getType(currentX, currentY);
+                point.isStopPoint = true;
+                result.points.push_back(point);
+            }
             return result;
         }
 
@@ -267,7 +318,18 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
         currentX = nextX;
         currentY = nextY;
         hasMoved = true;
-        result.cost += graph.getCost(currentX, currentY);
+        costFromPreviousImportant += graph.getCost(currentX, currentY);
+
+        if (graph.isImportantTile(currentX, currentY)) {
+            SlidePoint point;
+            point.row = currentX;
+            point.col = currentY;
+            point.costFromPrevious = costFromPreviousImportant;
+            point.type = graph.getType(currentX, currentY);
+            point.isStopPoint = false;
+            result.points.push_back(point);
+            costFromPreviousImportant = 0;
+        }
     }
 }
 
@@ -281,8 +343,9 @@ void SimpleGraph::convertToSimpleGraph(const Graph& graph) {
 
     std::map<std::pair<int, int>, SimpleNode*> nodeByPosition;
     std::queue<SimpleNode*> frontier;
+    std::set<int> processedBranchNodes;
 
-    SimpleNode* startNode = addNode(start.x, start.y);
+    SimpleNode* startNode = getOrAddNode(start.x, start.y, graph.getType(start.x, start.y), true);
     root = startNode;
     nodeByPosition[{start.x, start.y}] = startNode;
     frontier.push(startNode);
@@ -298,28 +361,47 @@ void SimpleGraph::convertToSimpleGraph(const Graph& graph) {
         if (currentNode == nullptr) {
             throw std::runtime_error("Node simple graph tidak ditemukan.");
         }
+        if (processedBranchNodes.count(currentNode->nodeId) > 0) {
+            continue;
+        }
+        processedBranchNodes.insert(currentNode->nodeId);
+
         int currentX = currentNode->row;
         int currentY = currentNode->col;
 
         for (int i = 0; i < 4; ++i) {
             SlideResult result = slide(graph, currentX, currentY,deltaX[i], deltaY[i], directions[i]);
-            if (!result.valid) { // when get gameover because slide not out of range or hit lava
+            if (!result.valid) {
                 continue;
             }
 
-            std::pair<int, int> stopPosition = {result.stopX, result.stopY};
-            auto found = nodeByPosition.find(stopPosition);
-            SimpleNode* neighbor = nullptr;
+            SimpleNode* previousNode = currentNode;
+            for (const SlidePoint& point : result.points) {
+                std::pair<int, int> position = {point.row, point.col};
+                auto found = nodeByPosition.find(position);
+                SimpleNode* nextNode = nullptr;
 
-            if (found == nodeByPosition.end()) {
-                neighbor = addNode(result.stopX, result.stopY);
-                nodeByPosition[stopPosition] = neighbor;
-                frontier.push(neighbor);
-            } else {
-                neighbor = found->second;
+                if (found == nodeByPosition.end()) {
+                    nextNode = getOrAddNode(point.row, point.col, point.type, point.isStopPoint);
+                    nodeByPosition[position] = nextNode;
+                    if (point.isStopPoint) {
+                        frontier.push(nextNode);
+                    }
+                } else {
+                    nextNode = found->second;
+                    bool wasBranchNode = nextNode->canBranch;
+                    if (nextNode->type == '*') {
+                        nextNode->type = point.type;
+                    }
+                    nextNode->canBranch = nextNode->canBranch || point.isStopPoint;
+                    if (!wasBranchNode && nextNode->canBranch) {
+                        frontier.push(nextNode);
+                    }
+                }
+
+                addNeighbor(previousNode, nextNode, point.costFromPrevious, graph.getHeuristicCost(point.row, point.col), result.direction, point.isStopPoint);
+                previousNode = nextNode;
             }
-
-            addNeighbor(currentNode, neighbor, result.cost, graph.getHeuristicCost(result.stopX, result.stopY), result.direction);
         }
     }
 }

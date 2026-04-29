@@ -11,11 +11,11 @@ struct typeNode {
 };
 
 struct Position {
-    int x = 0;
-    int y = 0;
+    int row = 0;
+    int col = 0;
 
     bool operator==(const Position& other) const {
-        return x == other.x && y == other.y;
+        return row == other.row && col == other.col;
     }
 };
 
@@ -45,6 +45,7 @@ public:
     bool isWall(int x, int y) const;
     bool isLava(int x, int y) const;
     bool isWalkable(int x, int y) const;
+    bool isImportantTile(int x, int y) const;
     int getHeuristicCost(int x, int y) const;
 };
 
@@ -56,6 +57,7 @@ struct informationEdge {
     int costEdge = 0;
     int costPrediction = 0;
     char direction = '?';
+    bool canStopAtNeighbor = false;
 };
 
 struct SimpleNode {
@@ -64,15 +66,23 @@ struct SimpleNode {
     int col = 0;
     int x = 0;
     int y = 0;
+    char type = '*';
+    bool canBranch = false;
     std::vector<informationEdge> neighbors;
+};
+
+struct SlidePoint {
+    int row = 0;
+    int col = 0;
+    int costFromPrevious = 0;
+    char type = '*';
+    bool isStopPoint = false;
 };
 
 struct SlideResult {
     bool valid = false;
-    int stopX = 0;
-    int stopY = 0;
-    int cost = 0;
     char direction = '?';
+    std::vector<SlidePoint> points;
 };
 
 class SimpleGraph {
@@ -87,8 +97,9 @@ public:
     SimpleGraph& operator=(const SimpleGraph& other) = delete;
 
     void clear();
-    SimpleNode* addNode(int x, int y);
-    void addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction);
+    SimpleNode* addNode(int row, int col);
+    SimpleNode* getOrAddNode(int row, int col, char type, bool canBranch);
+    void addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction, bool canStopAtNeighbor);
     void convertToSimpleGraph(const Graph& graph);
 
     int getNodeCount() const;
@@ -100,4 +111,4 @@ public:
 };
 
 Graph readMapFromFile(const std::string& filePath);
-SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int deltaY, char direction);
+SlideResult slide(const Graph& graph, int startRow,int startCol,int deltaRow,int deltaCol, char direction);
