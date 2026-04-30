@@ -19,6 +19,24 @@ struct Position {
     }
 };
 
+struct PassedTile {
+    int row = 0;
+    int col = 0;
+    char type = '*';
+};
+
+struct PredictionCost {
+    char target = '*';
+    int row = 0;
+    int col = 0;
+    int cost = 0;
+};
+
+enum class HeuristicMode {
+    ImportantSequence,
+    FinishOnly
+};
+
 class Graph {
 private:
     int rowCount = 0;
@@ -47,6 +65,7 @@ public:
     bool isWalkable(int x, int y) const;
     bool isImportantTile(int x, int y) const;
     int getHeuristicCost(int x, int y) const;
+    std::vector<PassedTile> getImportantTiles() const;
 };
 
 struct SimpleNode;
@@ -58,6 +77,7 @@ struct informationEdge {
     int costPrediction = 0;
     char direction = '?';
     bool canStopAtNeighbor = false;
+    std::vector<PassedTile> passedImportant;
 };
 
 struct SimpleNode {
@@ -68,21 +88,18 @@ struct SimpleNode {
     int y = 0;
     char type = '*';
     bool canBranch = false;
+    int finishPredictionCost = 0;
+    std::vector<PredictionCost> predictionCosts;
     std::vector<informationEdge> neighbors;
-};
-
-struct SlidePoint {
-    int row = 0;
-    int col = 0;
-    int costFromPrevious = 0;
-    char type = '*';
-    bool isStopPoint = false;
 };
 
 struct SlideResult {
     bool valid = false;
+    int stopRow = 0;
+    int stopCol = 0;
+    int cost = 0;
     char direction = '?';
-    std::vector<SlidePoint> points;
+    std::vector<PassedTile> passedImportant;
 };
 
 class SimpleGraph {
@@ -100,9 +117,14 @@ public:
     SimpleNode* addNode(int row, int col);
     SimpleNode* getOrAddNode(int row, int col, char type, bool canBranch);
     void addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction, bool canStopAtNeighbor);
+    void setPredictionCosts(const Graph& graph);
     void convertToSimpleGraph(const Graph& graph);
 
     int getNodeCount() const;
+    int getPredictionCost(const SimpleNode* node, char target) const;
+    int getHeuristicCost(const SimpleNode* node,
+                         int nextNumber,
+                         HeuristicMode mode) const;
     const SimpleNode* getRoot() const;
     SimpleNode* getRoot();
     std::vector<SimpleNode*> getNodes() const;

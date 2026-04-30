@@ -1,5 +1,6 @@
 #include "graph.hpp"
 
+#include <algorithm>
 #include <cmath>
 #include <fstream>
 #include <map>
@@ -10,10 +11,28 @@
 #include <utility>
 
 namespace {
+const int DELTA_ROW[] = {-1, 0, 1, 0};
+const int DELTA_COL[] = {0, 1, 0, -1};
+const char DIRECTIONS[] = {'U', 'R', 'D', 'L'};
+
 bool isValidTileType(char type) {
     return type == '*' || type == 'X' || type == 'L' ||
            type == 'Z' || type == 'O' ||
            (type >= '0' && type <= '9');
+}
+
+char targetForNextNumber(const std::vector<PredictionCost>& predictions,
+                         int nextNumber) {
+    if (nextNumber >= 0 && nextNumber <= 9) {
+        char target = static_cast<char>('0' + nextNumber);
+        for (const PredictionCost& prediction : predictions) {
+            if (prediction.target == target) {
+                return target;
+            }
+        }
+    }
+
+    return 'O';
 }
 }
 
@@ -113,6 +132,32 @@ int Graph::getHeuristicCost(int x, int y) const {
     return std::abs(goal.row - x) + std::abs(goal.col - y);
 }
 
+std::vector<PassedTile> Graph::getImportantTiles() const {
+    std::vector<PassedTile> importantTiles;
+
+    for (int row = 0; row < rowCount; ++row) {
+        for (int col = 0; col < colCount; ++col) {
+            if (isImportantTile(row, col)) {
+                PassedTile tile;
+                tile.row = row;
+                tile.col = col;
+                tile.type = nodes[row][col].type;
+                importantTiles.push_back(tile);
+            }
+        }
+    }
+
+    std::sort(importantTiles.begin(),
+              importantTiles.end(),
+              [](const PassedTile& left, const PassedTile& right) {
+                  int leftRank = left.type == 'O' ? 10 : left.type - '0';
+                  int rightRank = right.type == 'O' ? 10 : right.type - '0';
+                  return leftRank < rightRank;
+              });
+
+    return importantTiles;
+}
+
 SimpleGraph::~SimpleGraph() {
     clear();
 }
@@ -134,6 +179,7 @@ SimpleNode* SimpleGraph::addNode(int x, int y) {
     node->y = -x;
     node->type = '*';
     node->canBranch = false;
+    node->finishPredictionCost = 0;
 
     nodes.push_back(node);
     return node;
@@ -174,8 +220,57 @@ void SimpleGraph::addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEd
     node->neighbors.push_back(edge);
 }
 
+void SimpleGraph::setPredictionCosts(const Graph& graph) {
+    std::vector<PassedTile> importantTiles = graph.getImportantTiles();
+
+    for (SimpleNode* node : nodes) {
+        node->predictionCosts.clear();
+
+        for (const PassedTile& target : importantTiles) {
+            PredictionCost prediction;
+            prediction.target = target.type;
+            prediction.row = target.row;
+            prediction.col = target.col;
+            prediction.cost = std::abs(node->row - target.row) +
+                              std::abs(node->col - target.col);
+            node->predictionCosts.push_back(prediction);
+
+            if (target.type == 'O') {
+                node->finishPredictionCost = prediction.cost;
+            }
+        }
+    }
+}
+
 int SimpleGraph::getNodeCount() const {
     return static_cast<int>(nodes.size());
+}
+
+int SimpleGraph::getPredictionCost(const SimpleNode* node, char target) const {
+    if (node == nullptr) {
+        return 0;
+    }
+
+    for (const PredictionCost& prediction : node->predictionCosts) {
+        if (prediction.target == target) {
+            return prediction.cost;
+        }
+    }
+
+    return 0;
+}
+
+int SimpleGraph::getHeuristicCost(const SimpleNode* node, int nextNumber, HeuristicMode mode) const {
+    if (node == nullptr) {
+        return 0;
+    }
+
+    if (mode == HeuristicMode::FinishOnly) {
+        return node->finishPredictionCost;
+    }
+
+    char target = targetForNextNumber(node->predictionCosts, nextNumber);
+    return getPredictionCost(node, target);
 }
 
 const SimpleNode* SimpleGraph::getRoot() const {
@@ -235,10 +330,7 @@ Graph readMapFromFile(const std::string& filePath) {
 
         for (int col = 0; col < colCount; ++col) {
             char type = line[col];
-            bool validType =type == '*' || type == 'X' || type == 'L' ||
-                            type == 'Z' || type == 'O' ||
-                            (type >= '0' && type <= '9');
-            if (!validType) {
+            if (!isValidTileType(type)) {
                 throw std::runtime_error("Karakter peta tidak valid.");
             }
 
@@ -279,7 +371,6 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
     int currentX = startX;
     int currentY = startY;
     bool hasMoved = false;
-    int costFromPreviousImportant = 0;
 
     while (true) {
         int nextX = currentX + deltaX;
@@ -295,19 +386,8 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
             }
 
             result.valid = true;
-            if (!result.points.empty() &&
-                result.points.back().row == currentX &&
-                result.points.back().col == currentY) {
-                result.points.back().isStopPoint = true;
-            } else {
-                SlidePoint point;
-                point.row = currentX;
-                point.col = currentY;
-                point.costFromPrevious = costFromPreviousImportant;
-                point.type = graph.getType(currentX, currentY);
-                point.isStopPoint = true;
-                result.points.push_back(point);
-            }
+            result.stopRow = currentX;
+            result.stopCol = currentY;
             return result;
         }
 
@@ -318,17 +398,14 @@ SlideResult slide(const Graph& graph, int startX, int startY, int deltaX, int de
         currentX = nextX;
         currentY = nextY;
         hasMoved = true;
-        costFromPreviousImportant += graph.getCost(currentX, currentY);
+        result.cost += graph.getCost(currentX, currentY);
 
         if (graph.isImportantTile(currentX, currentY)) {
-            SlidePoint point;
-            point.row = currentX;
-            point.col = currentY;
-            point.costFromPrevious = costFromPreviousImportant;
-            point.type = graph.getType(currentX, currentY);
-            point.isStopPoint = false;
-            result.points.push_back(point);
-            costFromPreviousImportant = 0;
+            PassedTile tile;
+            tile.row = currentX;
+            tile.col = currentY;
+            tile.type = graph.getType(currentX, currentY);
+            result.passedImportant.push_back(tile);
         }
     }
 }
@@ -337,7 +414,7 @@ void SimpleGraph::convertToSimpleGraph(const Graph& graph) {
     clear();
 
     Position start = graph.getStart();
-    if (!graph.isInside(start.x, start.y)) {
+    if (!graph.isInside(start.row, start.col)) {
         throw std::runtime_error("Titik awal tidak valid.");
     }
 
@@ -345,14 +422,10 @@ void SimpleGraph::convertToSimpleGraph(const Graph& graph) {
     std::queue<SimpleNode*> frontier;
     std::set<int> processedBranchNodes;
 
-    SimpleNode* startNode = getOrAddNode(start.x, start.y, graph.getType(start.x, start.y), true);
+    SimpleNode* startNode = getOrAddNode(start.row, start.col, graph.getType(start.row, start.col), true);
     root = startNode;
-    nodeByPosition[{start.x, start.y}] = startNode;
+    nodeByPosition[{start.row, start.col}] = startNode;
     frontier.push(startNode);
-
-    const int deltaX[] = {-1, 0, 1, 0};
-    const int deltaY[] = {0, 1, 0, -1};
-    const char directions[] = {'U', 'R', 'D', 'L'};
 
     while (!frontier.empty()) {
         SimpleNode* currentNode = frontier.front();
@@ -370,38 +443,28 @@ void SimpleGraph::convertToSimpleGraph(const Graph& graph) {
         int currentY = currentNode->col;
 
         for (int i = 0; i < 4; ++i) {
-            SlideResult result = slide(graph, currentX, currentY,deltaX[i], deltaY[i], directions[i]);
+            SlideResult result = slide(graph, currentX, currentY, DELTA_ROW[i], DELTA_COL[i], DIRECTIONS[i]);
             if (!result.valid) {
                 continue;
             }
 
-            SimpleNode* previousNode = currentNode;
-            for (const SlidePoint& point : result.points) {
-                std::pair<int, int> position = {point.row, point.col};
-                auto found = nodeByPosition.find(position);
-                SimpleNode* nextNode = nullptr;
+            std::pair<int, int> stopPosition = {result.stopRow, result.stopCol};
+            auto found = nodeByPosition.find(stopPosition);
+            SimpleNode* nextNode = nullptr;
 
-                if (found == nodeByPosition.end()) {
-                    nextNode = getOrAddNode(point.row, point.col, point.type, point.isStopPoint);
-                    nodeByPosition[position] = nextNode;
-                    if (point.isStopPoint) {
-                        frontier.push(nextNode);
-                    }
-                } else {
-                    nextNode = found->second;
-                    bool wasBranchNode = nextNode->canBranch;
-                    if (nextNode->type == '*') {
-                        nextNode->type = point.type;
-                    }
-                    nextNode->canBranch = nextNode->canBranch || point.isStopPoint;
-                    if (!wasBranchNode && nextNode->canBranch) {
-                        frontier.push(nextNode);
-                    }
-                }
-
-                addNeighbor(previousNode, nextNode, point.costFromPrevious, graph.getHeuristicCost(point.row, point.col), result.direction, point.isStopPoint);
-                previousNode = nextNode;
+            if (found == nodeByPosition.end()) {
+                nextNode = getOrAddNode(result.stopRow, result.stopCol, graph.getType(result.stopRow, result.stopCol), true);
+                nodeByPosition[stopPosition] = nextNode;
+                frontier.push(nextNode);
+            } else {
+                nextNode = found->second;
             }
+
+            addNeighbor(currentNode, nextNode, result.cost, graph.getHeuristicCost(result.stopRow, result.stopCol),
+                        result.direction, true);
+            currentNode->neighbors.back().passedImportant = result.passedImportant;
         }
     }
+
+    setPredictionCosts(graph);
 }
