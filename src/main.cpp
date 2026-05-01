@@ -1,3 +1,4 @@
+#include "Board.hpp"
 #include "graph.hpp"
 
 #include <iostream>
@@ -14,38 +15,36 @@ std::string boolText(bool value) {
 
 int main(int argc, char* argv[]) {
     std::string pathFile;
-    if (argc >= 3 ) {
+    if (argc >= 3) {
         std::cout << "Penggunaan: " << argv[0] << " <file-input>\n";
         return 0;
-    }
-    else if(argc < 2){
+    } else if (argc < 2) {
         std::cout << "Masukkan file input: ";
         std::cin >> pathFile;
     }
 
     try {
+        Board board;
+        if (!pathFile.empty()) {
+            board = readBoardFromFile(pathFile);
+        } else {
+            board = readBoardFromFile(argv[1]);
+        }
+
         Graph graph;
-        if(!pathFile.empty()){
-            graph = readMapFromFile(pathFile);
-        }
-        else{
-            graph = readMapFromFile(argv[1]);
-            
-        }
-        SimpleGraph simpleGraph;
-        simpleGraph.convertToSimpleGraph(graph);
+        graph.buildFromBoard(board);
 
         std::cout << "Jumlah node simple graph: "
-                  << simpleGraph.getNodeCount() << '\n';
+                  << graph.getNodeCount() << '\n';
 
-        const SimpleNode* root = simpleGraph.getRoot();
+        const GraphNode* root = graph.getRoot();
         if (root != nullptr) {
             std::cout << "Root: Node " << root->nodeId
                       << " (" << root->x << ", " << root->y << ")"
                       << " grid=(" << root->row << ", " << root->col << ")\n";
         }
 
-        for (const SimpleNode* node : simpleGraph.getNodes()) {
+        for (const GraphNode* node : graph.getNodes()) {
             std::cout << "Node " << node->nodeId
                       << " (" << node->x << ", " << node->y << ")"
                       << " grid=(" << node->row << ", " << node->col << ")"
@@ -58,16 +57,16 @@ int main(int argc, char* argv[]) {
             }
             std::cout << '\n';
             std::cout << "  Heuristic nextNumber=0: important="
-                      << simpleGraph.getHeuristicCost(node,
-                                                       0,
-                                                       HeuristicMode::ImportantSequence)
+                      << graph.getHeuristicCost(node,
+                                                0,
+                                                HeuristicMode::ImportantSequence)
                       << " finishOnly="
-                      << simpleGraph.getHeuristicCost(node,
-                                                       0,
-                                                       HeuristicMode::FinishOnly)
+                      << graph.getHeuristicCost(node,
+                                                0,
+                                                HeuristicMode::FinishOnly)
                       << '\n';
 
-            for (const informationEdge& edge : node->neighbors) {
+            for (const Edge& edge : node->neighbors) {
                 std::cout << "  " << edge.direction
                           << " -> Node " << edge.neighborId
                           << " cost=" << edge.costEdge
@@ -84,10 +83,10 @@ int main(int argc, char* argv[]) {
 
         }
 
-        for(const SimpleNode* node : simpleGraph.getNodes()) {
+        for (const GraphNode* node : graph.getNodes()) {
             std::cout << "Node " << node->nodeId << '\n';
-            std:: cout << "  Neighbors: ";
-            for (const informationEdge& edge : node->neighbors) {
+            std::cout << "  Neighbors: ";
+            for (const Edge& edge : node->neighbors) {
                 std::cout << edge.neighborId << " ";
                 std::cout << "(cost=" << edge.costEdge
                           << ", h=" << edge.costPrediction

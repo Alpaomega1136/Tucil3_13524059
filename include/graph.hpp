@@ -1,29 +1,8 @@
 #pragma once
 
-#include <string>
+#include "Board.hpp"
+
 #include <vector>
-
-struct typeNode {
-    int x = 0;
-    int y = 0;
-    int cost = 0;
-    char type = '*';
-};
-
-struct Position {
-    int row = 0;
-    int col = 0;
-
-    bool operator==(const Position& other) const {
-        return row == other.row && col == other.col;
-    }
-};
-
-struct PassedTile {
-    int row = 0;
-    int col = 0;
-    char type = '*';
-};
 
 struct PredictionCost {
     char target = '*';
@@ -37,100 +16,55 @@ enum class HeuristicMode {
     FinishOnly
 };
 
-class Graph {
-private:
-    int rowCount = 0;
-    int colCount = 0;
-    std::vector<std::vector<typeNode>> nodes;
-    Position start{-1, -1};
-    Position goal{-1, -1};
+struct GraphNode;
 
-public:
-    Graph() = default;
-    Graph(int x, int y);
-
-    void setCost(int x, int y, int value);
-    void setType(int x, int y, char value);
-
-    int getCost(int x, int y) const;
-    char getType(int x, int y) const;
-    int getRowCount() const;
-    int getColCount() const;
-    Position getStart() const;
-    Position getGoal() const;
-
-    bool isInside(int x, int y) const;
-    bool isWall(int x, int y) const;
-    bool isLava(int x, int y) const;
-    bool isWalkable(int x, int y) const;
-    bool isImportantTile(int x, int y) const;
-    int getHeuristicCost(int x, int y) const;
-    std::vector<PassedTile> getImportantTiles() const;
-};
-
-struct SimpleNode;
-
-struct informationEdge {
-    SimpleNode* neighbor = nullptr;
+struct Edge {
+    GraphNode* neighbor = nullptr;
     int neighborId = -1;
     int costEdge = 0;
     int costPrediction = 0;
     char direction = '?';
-    bool canStopAtNeighbor = false;
+    bool canStopAtNeighbor = true;
     std::vector<PassedTile> passedImportant;
 };
 
-struct SimpleNode {
+struct GraphNode {
     int nodeId = -1;
     int row = 0;
     int col = 0;
     int x = 0;
     int y = 0;
     char type = '*';
-    bool canBranch = false;
+    bool canBranch = true;
     int finishPredictionCost = 0;
     std::vector<PredictionCost> predictionCosts;
-    std::vector<informationEdge> neighbors;
+    std::vector<Edge> neighbors;
 };
 
-struct SlideResult {
-    bool valid = false;
-    int stopRow = 0;
-    int stopCol = 0;
-    int cost = 0;
-    char direction = '?';
-    std::vector<PassedTile> passedImportant;
-};
-
-class SimpleGraph {
+class Graph {
 private:
-    std::vector<SimpleNode*> nodes;
-    SimpleNode* root = nullptr;
+    std::vector<GraphNode*> nodes;
+    GraphNode* root = nullptr;
 
 public:
-    SimpleGraph() = default;
-    ~SimpleGraph();
-    SimpleGraph(const SimpleGraph& other) = delete;
-    SimpleGraph& operator=(const SimpleGraph& other) = delete;
+    Graph() = default;
+    ~Graph();
+    Graph(const Graph& other) = delete;
+    Graph& operator=(const Graph& other) = delete;
 
     void clear();
-    SimpleNode* addNode(int row, int col);
-    SimpleNode* getOrAddNode(int row, int col, char type, bool canBranch);
-    void addNeighbor(SimpleNode* node, SimpleNode* neighbor, int costEdge, int costPrediction, char direction, bool canStopAtNeighbor);
-    void setPredictionCosts(const Graph& graph);
-    void convertToSimpleGraph(const Graph& graph);
+    GraphNode* addNode(int row, int col);
+    GraphNode* getOrAddNode(int row, int col, char type);
+    void addNeighbor(GraphNode* node, GraphNode* neighbor, int costEdge, int costPrediction, char direction, const std::vector<PassedTile>& passedImportant);
+    void setPredictionCosts(const Board& board);
+    void buildFromBoard(const Board& board);
 
     int getNodeCount() const;
-    int getPredictionCost(const SimpleNode* node, char target) const;
-    int getHeuristicCost(const SimpleNode* node,
-                         int nextNumber,
-                         HeuristicMode mode) const;
-    const SimpleNode* getRoot() const;
-    SimpleNode* getRoot();
-    std::vector<SimpleNode*> getNodes() const;
-    const SimpleNode* getNode(int nodeId) const;
-    SimpleNode* getNode(int nodeId);
+    int getPredictionCost(const GraphNode* node, char target) const;
+    int getHeuristicCost(const GraphNode* node, int nextNumber, HeuristicMode mode) const;
+    const GraphNode* getRoot() const;
+    GraphNode* getRoot();
+    std::vector<GraphNode*> getNodes() const;
+    const GraphNode* getNode(int nodeId) const;
+    GraphNode* getNode(int nodeId);
 };
-
-Graph readMapFromFile(const std::string& filePath);
-SlideResult slide(const Graph& graph, int startRow,int startCol,int deltaRow,int deltaCol, char direction);
