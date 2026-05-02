@@ -90,7 +90,6 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
     }
 
     const int importantCount = graph.getImportantNodeCount();
-    const bool useImportantSequence = mode == HeuristicMode::ImportantSequence;
     const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
         if (algorithm == Algorithm::UCS) {
             return gCost;
@@ -146,7 +145,7 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
         const bool reachedFinish = currentNode->type == 'O';
         const bool completedImportantSequence = current.nextNumber == importantCount;
-        if (reachedFinish && (!useImportantSequence || completedImportantSequence)) {
+        if (reachedFinish && completedImportantSequence) {
             goalHistoryIdx = current.historyIdx;
             goalCost = current.gCost;
             break;
@@ -154,12 +153,8 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
         for (const Edge& edge : currentNode->neighbors) {
             int nextNumberAfter = current.nextNumber;
-            if (useImportantSequence) {
-                if (!advanceImportantSequence(current.nextNumber, edge.passedImportant, nextNumberAfter)) {
-                    continue;
-                }
-            } else {
-                nextNumberAfter = 0;
+            if (!advanceImportantSequence(current.nextNumber, edge.passedImportant, nextNumberAfter)) {
+                continue;
             }
 
             int newGCost = current.gCost + edge.costEdge;

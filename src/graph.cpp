@@ -32,6 +32,8 @@ void Graph::clear() {
     nodes.clear();
     root = nullptr;
     importantNodeCount = 0;
+    importantTargets.clear();
+    goal = Position{};
 }
 
 GraphNode* Graph::addNode(int row, int col) {
@@ -90,6 +92,8 @@ void Graph::addNeighbor(GraphNode* node,
 
 void Graph::setPredictionCosts(const Board& board) {
     std::vector<PassedTile> importantTiles = board.getImportantTiles();
+    importantTargets = importantTiles;
+    goal = board.getGoal();
     importantNodeCount = board.getImportantCount();
 
     for (GraphNode* node : nodes) {
@@ -206,6 +210,24 @@ int Graph::getHeuristicCost(const GraphNode* node,
 
     if (mode == HeuristicMode::FinishOnly) {
         return node->finishPredictionCost;
+    }
+
+    if (mode == HeuristicMode::OrderedSequence) {
+        if (nextNumber >= importantNodeCount) {
+            return node->finishPredictionCost;
+        }
+
+        int total = 0;
+        int currentRow = node->row;
+        int currentCol = node->col;
+        for (int number = nextNumber; number < importantNodeCount; ++number) {
+            const PassedTile& target = importantTargets[number];
+            total += std::abs(currentRow - target.row) + std::abs(currentCol - target.col);
+            currentRow = target.row;
+            currentCol = target.col;
+        }
+        total += std::abs(currentRow - goal.row) + std::abs(currentCol - goal.col);
+        return total;
     }
 
     char target = targetForNextNumber(nextNumber, importantNodeCount);

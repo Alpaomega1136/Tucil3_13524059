@@ -13,7 +13,8 @@ struct PredictionCost {
 
 enum class HeuristicMode {
     ImportantSequence,
-    FinishOnly
+    FinishOnly,
+    OrderedSequence
 };
 
 struct GraphNode;
@@ -46,6 +47,8 @@ private:
     std::vector<GraphNode*> nodes;
     GraphNode* root = nullptr;
     int importantNodeCount = 0;
+    std::vector<PassedTile> importantTargets;
+    Position goal;
 
 public:
     Graph() = default;
