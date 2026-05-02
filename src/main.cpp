@@ -3,6 +3,7 @@
 #include "pathFinding.hpp"
 
 #include <chrono>
+#include <filesystem>
 #include <fstream>
 #include <iostream>
 #include <ostream>
@@ -11,6 +12,9 @@
 #include <vector>
 
 namespace {
+const std::string INPUT_FOLDER = "test/input/";
+const std::string OUTPUT_FOLDER = "test/output/";
+
 bool fileExists(const std::string& path) {
     std::ifstream file(path);
     return file.good();
@@ -21,12 +25,27 @@ std::string resolveInputPath(const std::string& path) {
         return path;
     }
 
+    std::string inputPath = INPUT_FOLDER + path;
+    if (fileExists(inputPath)) {
+        return inputPath;
+    }
+
     std::string testPath = "test/" + path;
     if (fileExists(testPath)) {
         return testPath;
     }
 
     return path;
+}
+
+std::string getOutputPath(const std::string& inputPath) {
+    std::filesystem::path path(inputPath);
+    std::string stem = path.stem().string();
+    if (stem.empty()) {
+        stem = "solusi";
+    }
+
+    return OUTPUT_FOLDER + stem + "_solution.txt";
 }
 
 std::string directionsToString(const std::vector<char>& path) {
@@ -139,6 +158,7 @@ void runPlayback(const Board& board, const std::vector<Position>& positions, std
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
                   int totalIterations,long long elapsedMs, const std::string& outputPath) {
+    std::filesystem::create_directories(std::filesystem::path(outputPath).parent_path());
     std::ofstream output(outputPath);
     if (!output) {
         throw std::runtime_error("File solusi tidak dapat dibuat.");
@@ -151,7 +171,8 @@ void saveSolution(const Board& board, const std::vector<char>& path, const std::
     output << ">> Banyak iterasi yang dilakukan: " << totalIterations << " iterasi\n";
 }
 
-void askToSaveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost, int totalIterations, long long elapsedMs) {
+void askToSaveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
+                       int totalIterations, long long elapsedMs, const std::string& outputPath) {
     std::string answer;
     std::cout << ">> Apakah Anda ingin menyimpan solusi? (Ya/Tidak) :\n";
     std::cin >> answer;
@@ -159,7 +180,6 @@ void askToSaveSolution(const Board& board, const std::vector<char>& path, const 
         return;
     }
 
-    const std::string outputPath = "solusi.txt";
     saveSolution(board, path, positions, totalCost, totalIterations, elapsedMs, outputPath);
     std::cout << ">> Solusi disimpan pada " << outputPath << '\n';
 }
@@ -182,7 +202,8 @@ int main(int argc, char* argv[]) {
     }
 
     try {
-        Board board = readBoardFromFile(readInputPath(argc, argv));
+        std::string inputPath = readInputPath(argc, argv);
+        Board board = readBoardFromFile(inputPath);
         Graph graph;
         graph.buildFromBoard(board);
 
@@ -223,7 +244,13 @@ int main(int argc, char* argv[]) {
         std::cout << ">> Banyak iterasi yang dilakukan: "
                   << pathFinding.getTotalIterations() << " iterasi\n";
         runPlayback(board, positions, path.size());
-        askToSaveSolution(board, path, positions, pathFinding.getTotalCost(), pathFinding.getTotalIterations(), elapsedMs);
+        askToSaveSolution(board,
+                          path,
+                          positions,
+                          pathFinding.getTotalCost(),
+                          pathFinding.getTotalIterations(),
+                          elapsedMs,
+                          getOutputPath(inputPath));
     } catch (const std::exception& error) {
         std::cerr << "Error: " << error.what() << '\n';
         return 1;

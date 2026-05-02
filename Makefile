@@ -2,7 +2,7 @@ CXX := g++
 CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -O2 -Iinclude
 
 TARGET := bin/tucil3
-BUILD_DIR := build
+BUILD_DIR := bin
 SRC := $(wildcard src/*.cpp)
 OBJ := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
 
@@ -16,13 +16,13 @@ $(TARGET): $(OBJ) | bin
 $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-$(BUILD_DIR) bin:
+$(BUILD_DIR):
 	mkdir -p $@
 
 run: all
 	./$(TARGET)
 
 clean:
-	rm -rf $(BUILD_DIR) $(TARGET)
+	rm -f $(OBJ) $(TARGET)
 
 rebuild: clean all
