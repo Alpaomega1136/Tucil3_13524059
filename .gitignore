@@ -1,4 +1,5 @@
 build/
+bin/tucil3
 *.o
 *.log
 
