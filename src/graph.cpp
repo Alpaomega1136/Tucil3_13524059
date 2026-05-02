@@ -12,15 +12,9 @@ const int DELTA_ROW[] = {-1, 0, 1, 0};
 const int DELTA_COL[] = {0, 1, 0, -1};
 const char DIRECTIONS[] = {'U', 'R', 'D', 'L'};
 
-char targetForNextNumber(const std::vector<PredictionCost>& predictions,
-                         int nextNumber) {
-    if (nextNumber >= 0 && nextNumber <= 9) {
-        char target = static_cast<char>('0' + nextNumber);
-        for (const PredictionCost& prediction : predictions) {
-            if (prediction.target == target) {
-                return target;
-            }
-        }
+char targetForNextNumber(int nextNumber, int importantNodeCount) {
+    if (nextNumber >= 0 && nextNumber < importantNodeCount) {
+        return static_cast<char>('0' + nextNumber);
     }
 
     return 'O';
@@ -37,6 +31,7 @@ void Graph::clear() {
     }
     nodes.clear();
     root = nullptr;
+    importantNodeCount = 0;
 }
 
 GraphNode* Graph::addNode(int row, int col) {
@@ -95,10 +90,11 @@ void Graph::addNeighbor(GraphNode* node,
 
 void Graph::setPredictionCosts(const Board& board) {
     std::vector<PassedTile> importantTiles = board.getImportantTiles();
+    importantNodeCount = board.getImportantCount();
 
     for (GraphNode* node : nodes) {
         node->predictionCosts.clear();
-        node->finishPredictionCost = 0;
+        node->finishPredictionCost = board.getDistanceToGoal(node->row, node->col);
 
         for (const PassedTile& target : importantTiles) {
             PredictionCost prediction;
@@ -109,9 +105,6 @@ void Graph::setPredictionCosts(const Board& board) {
                               std::abs(node->col - target.col);
             node->predictionCosts.push_back(prediction);
 
-            if (target.type == 'O') {
-                node->finishPredictionCost = prediction.cost;
-            }
         }
     }
 }
@@ -187,6 +180,10 @@ int Graph::getNodeCount() const {
     return static_cast<int>(nodes.size());
 }
 
+int Graph::getImportantNodeCount() const {
+    return importantNodeCount;
+}
+
 int Graph::getPredictionCost(const GraphNode* node, char target) const {
     if (node == nullptr) {
         return 0;
@@ -212,7 +209,11 @@ int Graph::getHeuristicCost(const GraphNode* node,
         return node->finishPredictionCost;
     }
 
-    char target = targetForNextNumber(node->predictionCosts, nextNumber);
+    char target = targetForNextNumber(nextNumber, importantNodeCount);
+    if (target == 'O') {
+        return node->finishPredictionCost;
+    }
+
     return getPredictionCost(node, target);
 }
 

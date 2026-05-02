@@ -48,6 +48,10 @@ void Board::setType(int row, int col, char value) {
     }
 }
 
+void Board::setImportantCount(int value) {
+    importantCount = value;
+}
+
 int Board::getCost(int row, int col) const {
     if (!isInside(row, col)) {
         throw std::out_of_range("Koordinat cost berada di luar peta.");
@@ -68,6 +72,10 @@ int Board::getRowCount() const {
 
 int Board::getColCount() const {
     return colCount;
+}
+
+int Board::getImportantCount() const {
+    return importantCount;
 }
 
 Position Board::getStart() const {
@@ -100,10 +108,18 @@ bool Board::isImportantTile(int row, int col) const {
     }
 
     char type = tiles[row][col].type;
-    return type == 'O' || (type >= '0' && type <= '9');
+    return type >= '0' && type <= '9';
+}
+
+bool Board::isGoal(int row, int col) const {
+    return isInside(row, col) && tiles[row][col].type == 'O';
 }
 
 int Board::getHeuristicCost(int row, int col) const {
+    return getDistanceToGoal(row, col);
+}
+
+int Board::getDistanceToGoal(int row, int col) const {
     if (!isInside(goal.row, goal.col)) {
         return 0;
     }
@@ -121,12 +137,9 @@ std::vector<PassedTile> Board::getImportantTiles() const {
         }
     }
 
-    std::sort(importantTiles.begin(),
-              importantTiles.end(),
+    std::sort(importantTiles.begin(), importantTiles.end(),
               [](const PassedTile& left, const PassedTile& right) {
-                  int leftRank = left.type == 'O' ? 10 : left.type - '0';
-                  int rightRank = right.type == 'O' ? 10 : right.type - '0';
-                  return leftRank < rightRank;
+                  return left.type < right.type;
               });
 
     return importantTiles;
@@ -172,7 +185,8 @@ SlideResult Board::slide(int startRow,
         hasMoved = true;
         result.cost += getCost(currentRow, currentCol);
 
-        if (isImportantTile(currentRow, currentCol)) {
+        if (isImportantTile(currentRow, currentCol) ||
+            isGoal(currentRow, currentCol)) {
             result.passedImportant.push_back(
                 PassedTile{currentRow, currentCol, getType(currentRow, currentCol)});
         }
@@ -195,6 +209,8 @@ Board readBoardFromFile(const std::string& filePath) {
     Board board(rowCount, colCount);
     int startCount = 0;
     int goalCount = 0;
+    std::vector<bool> foundNumbers(10, false);
+    int maxNumber = -1;
 
     for (int row = 0; row < rowCount; ++row) {
         std::string line;
@@ -213,6 +229,10 @@ Board readBoardFromFile(const std::string& filePath) {
                 ++startCount;
             } else if (type == 'O') {
                 ++goalCount;
+            } else if (type >= '0' && type <= '9') {
+                int number = type - '0';
+                foundNumbers[number] = true;
+                maxNumber = std::max(maxNumber, number);
             }
             board.setType(row, col, type);
         }
@@ -235,6 +255,13 @@ Board readBoardFromFile(const std::string& filePath) {
     if (goalCount != 1) {
         throw std::runtime_error("Peta harus memiliki tepat satu titik tujuan O.");
     }
+
+    for (int number = 0; number <= maxNumber; ++number) {
+        if (!foundNumbers[number]) {
+            throw std::runtime_error("Angka pada peta harus berurutan mulai dari 0.");
+        }
+    }
+    board.setImportantCount(maxNumber + 1);
 
     return board;
 }

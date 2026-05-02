@@ -41,6 +41,7 @@ private:
     std::vector<std::vector<Tile>> tiles;
     Position start{-1, -1};
     Position goal{-1, -1};
+    int importantCount = 0;
 
 public:
     Board() = default;
@@ -48,11 +49,13 @@ public:
 
     void setCost(int row, int col, int value);
     void setType(int row, int col, char value);
+    void setImportantCount(int value);
 
     int getCost(int row, int col) const;
     char getType(int row, int col) const;
     int getRowCount() const;
     int getColCount() const;
+    int getImportantCount() const;
     Position getStart() const;
     Position getGoal() const;
 
@@ -61,8 +64,10 @@ public:
     bool isLava(int row, int col) const;
     bool isWalkable(int row, int col) const;
     bool isImportantTile(int row, int col) const;
+    bool isGoal(int row, int col) const;
 
     int getHeuristicCost(int row, int col) const;
+    int getDistanceToGoal(int row, int col) const;
     std::vector<PassedTile> getImportantTiles() const;
     SlideResult slide(int startRow, int startCol, int deltaRow, int deltaCol, char direction) const;
 };

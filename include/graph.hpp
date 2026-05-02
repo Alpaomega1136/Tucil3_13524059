@@ -45,6 +45,7 @@ class Graph {
 private:
     std::vector<GraphNode*> nodes;
     GraphNode* root = nullptr;
+    int importantNodeCount = 0;
 
 public:
     Graph() = default;
@@ -60,6 +61,7 @@ public:
     void buildFromBoard(const Board& board);
 
     int getNodeCount() const;
+    int getImportantNodeCount() const;
     int getPredictionCost(const GraphNode* node, char target) const;
     int getHeuristicCost(const GraphNode* node, int nextNumber, HeuristicMode mode) const;
     const GraphNode* getRoot() const;
