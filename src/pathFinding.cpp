@@ -3,7 +3,6 @@
 #include <algorithm>
 #include <map>
 #include <queue>
-#include <utility>
 #include <vector>
 
 namespace {
@@ -29,6 +28,7 @@ struct HistoryRecord {
 struct FrontierEntry {
     int priority = 0;
     int gCost = 0;
+    int heuristicCost = 0;
     int historyIdx = -1;
     int nodeId = -1;
     int nextNumber = 0;
@@ -91,9 +91,20 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
     const int importantCount = graph.getImportantNodeCount();
     const bool useImportantSequence = mode == HeuristicMode::ImportantSequence;
+    const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
+        if (algorithm == Algorithm::UCS) {
+            return gCost;
+        }
+        if (algorithm == Algorithm::GBFS) {
+            return heuristicCost;
+        }
+        return gCost + heuristicCost;
+    };
 
     std::vector<HistoryRecord> history;
-    std::priority_queue<FrontierEntry, std::vector<FrontierEntry>, FrontierCompare> frontier;
+    std::priority_queue<FrontierEntry,
+                        std::vector<FrontierEntry>,
+                        FrontierCompare> frontier;
     std::map<StateKey, int> bestCost;
 
     int rootHeuristic = 0;
@@ -105,16 +116,11 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
     FrontierEntry rootEntry;
     rootEntry.gCost = 0;
+    rootEntry.heuristicCost = rootHeuristic;
     rootEntry.historyIdx = 0;
     rootEntry.nodeId = root->nodeId;
     rootEntry.nextNumber = 0;
-    if (algorithm == Algorithm::UCS) {
-        rootEntry.priority = 0;
-    } else if (algorithm == Algorithm::GBFS) {
-        rootEntry.priority = rootHeuristic;
-    } else {
-        rootEntry.priority = rootHeuristic;
-    }
+    rootEntry.priority = priorityFor(rootEntry.gCost, rootHeuristic);
 
     frontier.push(rootEntry);
     bestCost[StateKey{root->nodeId, 0}] = 0;
@@ -138,8 +144,8 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
             continue;
         }
 
-        bool reachedFinish = currentNode->type == 'O';
-        bool completedImportantSequence = current.nextNumber == importantCount;
+        const bool reachedFinish = currentNode->type == 'O';
+        const bool completedImportantSequence = current.nextNumber == importantCount;
         if (reachedFinish && (!useImportantSequence || completedImportantSequence)) {
             goalHistoryIdx = current.historyIdx;
             goalCost = current.gCost;
@@ -166,25 +172,21 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
             int neighborHeuristic = 0;
             if (algorithm != Algorithm::UCS) {
-                neighborHeuristic = graph.getHeuristicCost(edge.neighbor, nextNumberAfter, mode);
+                neighborHeuristic = graph.getHeuristicCost(edge.neighbor,
+                                                           nextNumberAfter,
+                                                           mode);
             }
 
-            int newPriority = 0;
-            if (algorithm == Algorithm::UCS) {
-                newPriority = newGCost;
-            } else if (algorithm == Algorithm::GBFS) {
-                newPriority = neighborHeuristic;
-            } else {
-                newPriority = newGCost + neighborHeuristic;
-            }
-
-            history.push_back(HistoryRecord{edge.neighborId, current.historyIdx, edge.direction});
             FrontierEntry nextEntry;
-            nextEntry.priority = newPriority;
             nextEntry.gCost = newGCost;
-            nextEntry.historyIdx = static_cast<int>(history.size()) - 1;
+            nextEntry.heuristicCost = neighborHeuristic;
             nextEntry.nodeId = edge.neighborId;
             nextEntry.nextNumber = nextNumberAfter;
+            nextEntry.priority = priorityFor(nextEntry.gCost, neighborHeuristic);
+
+            history.push_back(
+                HistoryRecord{edge.neighborId, current.historyIdx, edge.direction});
+            nextEntry.historyIdx = static_cast<int>(history.size()) - 1;
             frontier.push(nextEntry);
         }
     }
@@ -218,7 +220,7 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 }
 
 void PathFinding::UCS(const Graph& graph) {
-    search(graph, Algorithm::UCS, HeuristicMode::FinishOnly);
+    search(graph, Algorithm::UCS, HeuristicMode::ImportantSequence);
 }
 
 void PathFinding::AStar(const Graph& graph, HeuristicMode mode) {

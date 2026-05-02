@@ -69,7 +69,11 @@ public:
     int getHeuristicCost(int row, int col) const;
     int getDistanceToGoal(int row, int col) const;
     std::vector<PassedTile> getImportantTiles() const;
-    SlideResult slide(int startRow, int startCol, int deltaRow, int deltaCol, char direction) const;
+    SlideResult slide(int startRow,
+                      int startCol,
+                      int deltaRow,
+                      int deltaCol,
+                      char direction) const;
 };
 
 Board readBoardFromFile(const std::string& filePath);

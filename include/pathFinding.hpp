@@ -25,6 +25,8 @@ public:
     int getTotalIterations() const;
 
     void UCS(const Graph& graph);
-    void AStar(const Graph& graph, HeuristicMode mode = HeuristicMode::FinishOnly);
-    void GBFS(const Graph& graph, HeuristicMode mode = HeuristicMode::FinishOnly);
+    void AStar(const Graph& graph,
+               HeuristicMode mode = HeuristicMode::FinishOnly);
+    void GBFS(const Graph& graph,
+              HeuristicMode mode = HeuristicMode::FinishOnly);
 };

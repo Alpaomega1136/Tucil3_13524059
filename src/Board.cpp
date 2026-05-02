@@ -132,7 +132,8 @@ std::vector<PassedTile> Board::getImportantTiles() const {
     for (int row = 0; row < rowCount; ++row) {
         for (int col = 0; col < colCount; ++col) {
             if (isImportantTile(row, col)) {
-                importantTiles.push_back(PassedTile{row, col, tiles[row][col].type});
+                importantTiles.push_back(
+                    PassedTile{row, col, tiles[row][col].type});
             }
         }
     }
@@ -188,7 +189,9 @@ SlideResult Board::slide(int startRow,
         if (isImportantTile(currentRow, currentCol) ||
             isGoal(currentRow, currentCol)) {
             result.passedImportant.push_back(
-                PassedTile{currentRow, currentCol, getType(currentRow, currentCol)});
+                PassedTile{currentRow,
+                           currentCol,
+                           getType(currentRow, currentCol)});
         }
     }
 }

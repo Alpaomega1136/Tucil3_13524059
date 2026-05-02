@@ -101,10 +101,8 @@ void Graph::setPredictionCosts(const Board& board) {
             prediction.target = target.type;
             prediction.row = target.row;
             prediction.col = target.col;
-            prediction.cost = std::abs(node->row - target.row) +
-                              std::abs(node->col - target.col);
+            prediction.cost = std::abs(node->row - target.row) + std::abs(node->col - target.col);
             node->predictionCosts.push_back(prediction);
-
         }
     }
 }
@@ -155,9 +153,10 @@ void Graph::buildFromBoard(const Board& board) {
             GraphNode* nextNode = nullptr;
 
             if (found == nodeByPosition.end()) {
-                nextNode = getOrAddNode(result.stopRow,
-                                        result.stopCol,
-                                        board.getType(result.stopRow, result.stopCol));
+                nextNode = getOrAddNode(
+                    result.stopRow,
+                    result.stopCol,
+                    board.getType(result.stopRow, result.stopCol));
                 nodeByPosition[stopPosition] = nextNode;
                 frontier.push(nextNode);
             } else {
