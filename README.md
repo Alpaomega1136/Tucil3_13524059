@@ -92,6 +92,8 @@ Jika nama file tidak memuat folder, program akan mencari file tersebut di:
 test/input/test.txt
 ```
 
+Resolusi path dilakukan dari root repository `Tucil3_13524059`, sehingga path seperti `test.txt` atau `test/input/test.txt` tetap mengarah ke file di dalam project.
+
 Program juga dapat dijalankan tanpa argumen:
 
 ```bash

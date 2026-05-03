@@ -167,9 +167,7 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
 
             int neighborHeuristic = 0;
             if (algorithm != Algorithm::UCS) {
-                neighborHeuristic = graph.getHeuristicCost(edge.neighbor,
-                                                           nextNumberAfter,
-                                                           mode);
+                neighborHeuristic = graph.getHeuristicCost(edge.neighbor, nextNumberAfter, mode);
             }
 
             FrontierEntry nextEntry;

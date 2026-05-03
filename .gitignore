@@ -1,6 +1,2 @@
-bin/tucil3
-*.o
-*.log
-
 .idea/
 .vscode/

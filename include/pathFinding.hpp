@@ -10,9 +10,7 @@ private:
     std::vector<Position> pathPositions;
     int totalCost = 0;
     int totalIterations = 0;
-
     enum class Algorithm { UCS, AStar, GBFS };
-
     void search(const Graph& graph, Algorithm algorithm, HeuristicMode mode);
 
 public:
@@ -25,8 +23,6 @@ public:
     int getTotalIterations() const;
 
     void UCS(const Graph& graph);
-    void AStar(const Graph& graph,
-               HeuristicMode mode = HeuristicMode::FinishOnly);
-    void GBFS(const Graph& graph,
-              HeuristicMode mode = HeuristicMode::FinishOnly);
+    void AStar(const Graph& graph, HeuristicMode mode = HeuristicMode::FinishOnly);
+    void GBFS(const Graph& graph, HeuristicMode mode = HeuristicMode::FinishOnly);
 };

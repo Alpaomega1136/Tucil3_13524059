@@ -66,12 +66,8 @@ GraphNode* Graph::getOrAddNode(int row, int col, char type) {
     return node;
 }
 
-void Graph::addNeighbor(GraphNode* node,
-                        GraphNode* neighbor,
-                        int costEdge,
-                        int costPrediction,
-                        char direction,
-                        const std::vector<PassedTile>& passedImportant) {
+void Graph::addNeighbor(GraphNode* node, GraphNode* neighbor, int costEdge, int costPrediction,
+                        char direction, const std::vector<PassedTile>& passedImportant) {
     if (node == nullptr) {
         throw std::out_of_range("Node asal tidak ditemukan.");
     }
@@ -123,9 +119,7 @@ void Graph::buildFromBoard(const Board& board) {
     std::queue<GraphNode*> frontier;
     std::set<int> processedNodes;
 
-    GraphNode* startNode = getOrAddNode(start.row,
-                                        start.col,
-                                        board.getType(start.row, start.col));
+    GraphNode* startNode = getOrAddNode(start.row, start.col, board.getType(start.row, start.col));
     root = startNode;
     nodeByPosition[{start.row, start.col}] = startNode;
     frontier.push(startNode);
@@ -143,11 +137,8 @@ void Graph::buildFromBoard(const Board& board) {
         processedNodes.insert(currentNode->nodeId);
 
         for (int i = 0; i < 4; ++i) {
-            SlideResult result = board.slide(currentNode->row,
-                                             currentNode->col,
-                                             DELTA_ROW[i],
-                                             DELTA_COL[i],
-                                             DIRECTIONS[i]);
+            SlideResult result = board.slide(currentNode->row, currentNode->col,DELTA_ROW[i],
+                                             DELTA_COL[i], DIRECTIONS[i]);
             if (!result.valid) {
                 continue;
             }
@@ -167,12 +158,8 @@ void Graph::buildFromBoard(const Board& board) {
                 nextNode = found->second;
             }
 
-            addNeighbor(currentNode,
-                        nextNode,
-                        result.cost,
-                        board.getHeuristicCost(result.stopRow, result.stopCol),
-                        result.direction,
-                        result.passedImportant);
+            addNeighbor(currentNode, nextNode, result.cost, board.getHeuristicCost(result.stopRow, result.stopCol),
+                        result.direction, result.passedImportant);
         }
     }
 

@@ -15,22 +15,52 @@ namespace {
 const std::string INPUT_FOLDER = "test/input/";
 const std::string OUTPUT_FOLDER = "test/output/";
 
+std::filesystem::path getProjectRoot() {
+    std::filesystem::path currentPath = std::filesystem::current_path();
+    while (!currentPath.empty()) {
+        if (currentPath.filename() == "Tucil3_13524059") {
+            return currentPath;
+        }
+        if (std::filesystem::exists(currentPath / "Makefile") &&
+            std::filesystem::exists(currentPath / "src") &&
+            std::filesystem::exists(currentPath / "test")) {
+            return currentPath;
+        }
+        if (currentPath == currentPath.root_path()) {
+            break;
+        }
+        currentPath = currentPath.parent_path();
+    }
+
+    return std::filesystem::current_path();
+}
+
+std::string getProjectPath(const std::string& path) {
+    std::filesystem::path filePath(path);
+    if (filePath.is_absolute()) {
+        return filePath.string();
+    }
+
+    return (getProjectRoot() / filePath).lexically_normal().string();
+}
+
 bool fileExists(const std::string& path) {
     std::ifstream file(path);
     return file.good();
 }
 
 std::string resolveInputPath(const std::string& path) {
-    if (fileExists(path)) {
-        return path;
+    std::string projectPath = getProjectPath(path);
+    if (fileExists(projectPath)) {
+        return projectPath;
     }
 
-    std::string inputPath = INPUT_FOLDER + path;
+    std::string inputPath = getProjectPath(INPUT_FOLDER + path);
     if (fileExists(inputPath)) {
         return inputPath;
     }
 
-    std::string testPath = "test/" + path;
+    std::string testPath = getProjectPath("test/" + path);
     if (fileExists(testPath)) {
         return testPath;
     }
@@ -158,8 +188,9 @@ void runPlayback(const Board& board, const std::vector<Position>& positions, std
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
                   int totalIterations,long long elapsedMs, const std::string& outputPath) {
-    std::filesystem::create_directories(std::filesystem::path(outputPath).parent_path());
-    std::ofstream output(outputPath);
+    std::string projectOutputPath = getProjectPath(outputPath);
+    std::filesystem::create_directories(std::filesystem::path(projectOutputPath).parent_path());
+    std::ofstream output(projectOutputPath);
     if (!output) {
         throw std::runtime_error("File solusi tidak dapat dibuat.");
     }
@@ -244,13 +275,7 @@ int main(int argc, char* argv[]) {
         std::cout << ">> Banyak iterasi yang dilakukan: "
                   << pathFinding.getTotalIterations() << " iterasi\n";
         runPlayback(board, positions, path.size());
-        askToSaveSolution(board,
-                          path,
-                          positions,
-                          pathFinding.getTotalCost(),
-                          pathFinding.getTotalIterations(),
-                          elapsedMs,
-                          getOutputPath(inputPath));
+        askToSaveSolution(board, path, positions, pathFinding.getTotalCost(), pathFinding.getTotalIterations(), elapsedMs, getOutputPath(inputPath));
     } catch (const std::exception& error) {
         std::cerr << "Error: " << error.what() << '\n';
         return 1;
