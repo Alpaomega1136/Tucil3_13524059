@@ -1,6 +1,8 @@
 file(REMOVE_RECURSE
   "CMakeFiles/tucil3_core.dir/src/Board.cpp.o"
   "CMakeFiles/tucil3_core.dir/src/Board.cpp.o.d"
+  "CMakeFiles/tucil3_core.dir/src/IO.cpp.o"
+  "CMakeFiles/tucil3_core.dir/src/IO.cpp.o.d"
   "CMakeFiles/tucil3_core.dir/src/graph.cpp.o"
   "CMakeFiles/tucil3_core.dir/src/graph.cpp.o.d"
   "CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o"

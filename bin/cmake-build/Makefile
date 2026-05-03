@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
+CMAKE_SOURCE_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
+CMAKE_BINARY_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build//CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build//CMakeFiles/progress.marks"
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" 0
 .PHONY : all
 
 # The main clean target
@@ -179,6 +179,30 @@ src/Board.cpp.s:
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/tucil3_core.dir/build.make CMakeFiles/tucil3_core.dir/src/Board.cpp.s
 .PHONY : src/Board.cpp.s
 
+src/IO.o: src/IO.cpp.o
+.PHONY : src/IO.o
+
+# target to build an object file
+src/IO.cpp.o:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tucil3_core.dir/build.make CMakeFiles/tucil3_core.dir/src/IO.cpp.o
+.PHONY : src/IO.cpp.o
+
+src/IO.i: src/IO.cpp.i
+.PHONY : src/IO.i
+
+# target to preprocess a source file
+src/IO.cpp.i:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tucil3_core.dir/build.make CMakeFiles/tucil3_core.dir/src/IO.cpp.i
+.PHONY : src/IO.cpp.i
+
+src/IO.s: src/IO.cpp.s
+.PHONY : src/IO.s
+
+# target to generate assembly for a file
+src/IO.cpp.s:
+	$(MAKE) $(MAKESILENT) -f CMakeFiles/tucil3_core.dir/build.make CMakeFiles/tucil3_core.dir/src/IO.cpp.s
+.PHONY : src/IO.cpp.s
+
 src/graph.o: src/graph.cpp.o
 .PHONY : src/graph.o
 
@@ -265,6 +289,9 @@ help:
 	@echo "... src/Board.o"
 	@echo "... src/Board.i"
 	@echo "... src/Board.s"
+	@echo "... src/IO.o"
+	@echo "... src/IO.i"
+	@echo "... src/IO.s"
 	@echo "... src/graph.o"
 	@echo "... src/graph.i"
 	@echo "... src/graph.s"

@@ -1,4 +1,5 @@
 #include "Board.hpp"
+#include "IO.hpp"
 #include "graph.hpp"
 #include "pathFinding.hpp"
 
@@ -7,14 +8,11 @@
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
-#include <fstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
 
 namespace {
-const std::string INPUT_FOLDER = "test/input/";
-const std::string OUTPUT_FOLDER = "test/output/";
 const int WINDOW_WIDTH = 2560;
 const int WINDOW_HEIGHT = 1440;
 const float UI_SCALE = 1.25f;
@@ -45,116 +43,8 @@ struct GuiState {
     bool hasSolution = false;
 };
 
-std::filesystem::path getProjectRoot() {
-    std::filesystem::path currentPath = std::filesystem::current_path();
-    while (!currentPath.empty()) {
-        if (currentPath.filename() == "Tucil3_13524059") {
-            return currentPath;
-        }
-        if (std::filesystem::exists(currentPath / "Makefile") &&
-            std::filesystem::exists(currentPath / "src") &&
-            std::filesystem::exists(currentPath / "test")) {
-            return currentPath;
-        }
-        if (currentPath == currentPath.root_path()) {
-            break;
-        }
-        currentPath = currentPath.parent_path();
-    }
-
-    return std::filesystem::current_path();
-}
-
-std::string getProjectPath(const std::string& path) {
-    std::filesystem::path filePath(path);
-    if (filePath.is_absolute()) {
-        return filePath.string();
-    }
-
-    return (getProjectRoot() / filePath).lexically_normal().string();
-}
-
-bool fileExists(const std::string& path) {
-    std::ifstream file(path);
-    return file.good();
-}
-
-std::string resolveInputPath(const std::string& path) {
-    std::string projectPath = getProjectPath(path);
-    if (fileExists(projectPath)) {
-        return projectPath;
-    }
-
-    std::string inputPath = getProjectPath(INPUT_FOLDER + path);
-    if (fileExists(inputPath)) {
-        return inputPath;
-    }
-
-    std::string testPath = getProjectPath("test/" + path);
-    if (fileExists(testPath)) {
-        return testPath;
-    }
-
-    return projectPath;
-}
-
-std::string directionsToString(const std::vector<char>& path) {
-    std::string result;
-    for (char direction : path) {
-        result.push_back(direction);
-    }
-    return result;
-}
-
-std::string getOutputPath(const std::string& inputPath) {
-    std::filesystem::path path(inputPath);
-    std::string stem = path.stem().string();
-    if (stem.empty()) {
-        stem = "solusi";
-    }
-
-    return OUTPUT_FOLDER + stem + "_solution.txt";
-}
-
-void writeBoardWithActor(std::ostream& output, const Board& board, Position actor) {
-    for (int row = 0; row < board.getRowCount(); ++row) {
-        for (int col = 0; col < board.getColCount(); ++col) {
-            if (row == actor.row && col == actor.col) {
-                output << 'Z';
-                continue;
-            }
-
-            char type = board.getType(row, col);
-            if (type == 'Z') {
-                output << '*';
-            } else {
-                output << type;
-            }
-        }
-        output << '\n';
-    }
-}
-
-void saveSolution(const GuiState& state) {
-    std::string outputPath = getProjectPath(getOutputPath(state.inputPath));
-    std::filesystem::create_directories(std::filesystem::path(outputPath).parent_path());
-    std::ofstream output(outputPath);
-    if (!output) {
-        throw std::runtime_error("File solusi tidak dapat dibuat.");
-    }
-
-    output << "Solusi Yang Ditemukan : " << directionsToString(state.path) << '\n';
-    output << "Cost dari Solusi : " << state.totalCost << '\n';
-    if (!state.positions.empty()) {
-        output << "Initial\n";
-        writeBoardWithActor(output, state.board, state.positions.front());
-        for (std::size_t i = 0; i < state.path.size(); ++i) {
-            output << "Step " << i + 1 << " : " << state.path[i] << '\n';
-            writeBoardWithActor(output, state.board, state.positions[i + 1]);
-        }
-    }
-    output << ">> Waktu eksekusi: " << state.elapsedMs << " ms\n";
-    output << ">> Banyak iterasi yang dilakukan: " << state.totalIterations << " iterasi\n";
+void saveGuiSolution(const GuiState& state) {
+    saveSolution(state.board, state.path, state.positions, state.totalCost, state.totalIterations, state.elapsedMs, getOutputPath(state.inputPath));
 }
 
 void solve(GuiState& state) {
@@ -509,7 +399,7 @@ int main() {
         if (drawButton(Rectangle{250, 682, 174, 66}, "Save", false)) {
             try {
                 if (state.hasSolution) {
-                    saveSolution(state);
+                    saveGuiSolution(state);
                     state.message = "Solusi disimpan pada " + getOutputPath(state.inputPath);
                 } else {
                     state.message = "Error: Tidak ada solusi untuk disimpan.";

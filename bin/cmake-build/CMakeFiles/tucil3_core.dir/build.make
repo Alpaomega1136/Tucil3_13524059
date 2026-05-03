@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
+CMAKE_SOURCE_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
+CMAKE_BINARY_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/tucil3_core.dir/depend.make
@@ -70,50 +70,65 @@ include CMakeFiles/tucil3_core.dir/progress.make
 include CMakeFiles/tucil3_core.dir/flags.make
 
 CMakeFiles/tucil3_core.dir/src/Board.cpp.o: CMakeFiles/tucil3_core.dir/flags.make
-CMakeFiles/tucil3_core.dir/src/Board.cpp.o: /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/Board.cpp
+CMakeFiles/tucil3_core.dir/src/Board.cpp.o: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/Board.cpp
 CMakeFiles/tucil3_core.dir/src/Board.cpp.o: CMakeFiles/tucil3_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tucil3_core.dir/src/Board.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/Board.cpp.o -MF CMakeFiles/tucil3_core.dir/src/Board.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/Board.cpp.o -c "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tucil3_core.dir/src/Board.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/Board.cpp.o -MF CMakeFiles/tucil3_core.dir/src/Board.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/Board.cpp.o -c "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp"
 
 CMakeFiles/tucil3_core.dir/src/Board.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tucil3_core.dir/src/Board.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp" > CMakeFiles/tucil3_core.dir/src/Board.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp" > CMakeFiles/tucil3_core.dir/src/Board.cpp.i
 
 CMakeFiles/tucil3_core.dir/src/Board.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tucil3_core.dir/src/Board.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp" -o CMakeFiles/tucil3_core.dir/src/Board.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/Board.cpp" -o CMakeFiles/tucil3_core.dir/src/Board.cpp.s
+
+CMakeFiles/tucil3_core.dir/src/IO.cpp.o: CMakeFiles/tucil3_core.dir/flags.make
+CMakeFiles/tucil3_core.dir/src/IO.cpp.o: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/IO.cpp
+CMakeFiles/tucil3_core.dir/src/IO.cpp.o: CMakeFiles/tucil3_core.dir/compiler_depend.ts
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/tucil3_core.dir/src/IO.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/IO.cpp.o -MF CMakeFiles/tucil3_core.dir/src/IO.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/IO.cpp.o -c "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/IO.cpp"
+
+CMakeFiles/tucil3_core.dir/src/IO.cpp.i: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tucil3_core.dir/src/IO.cpp.i"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/IO.cpp" > CMakeFiles/tucil3_core.dir/src/IO.cpp.i
+
+CMakeFiles/tucil3_core.dir/src/IO.cpp.s: cmake_force
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tucil3_core.dir/src/IO.cpp.s"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/IO.cpp" -o CMakeFiles/tucil3_core.dir/src/IO.cpp.s
 
 CMakeFiles/tucil3_core.dir/src/graph.cpp.o: CMakeFiles/tucil3_core.dir/flags.make
-CMakeFiles/tucil3_core.dir/src/graph.cpp.o: /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/graph.cpp
+CMakeFiles/tucil3_core.dir/src/graph.cpp.o: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/graph.cpp
 CMakeFiles/tucil3_core.dir/src/graph.cpp.o: CMakeFiles/tucil3_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Building CXX object CMakeFiles/tucil3_core.dir/src/graph.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/graph.cpp.o -MF CMakeFiles/tucil3_core.dir/src/graph.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/graph.cpp.o -c "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/tucil3_core.dir/src/graph.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/graph.cpp.o -MF CMakeFiles/tucil3_core.dir/src/graph.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/graph.cpp.o -c "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp"
 
 CMakeFiles/tucil3_core.dir/src/graph.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tucil3_core.dir/src/graph.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp" > CMakeFiles/tucil3_core.dir/src/graph.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp" > CMakeFiles/tucil3_core.dir/src/graph.cpp.i
 
 CMakeFiles/tucil3_core.dir/src/graph.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tucil3_core.dir/src/graph.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp" -o CMakeFiles/tucil3_core.dir/src/graph.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/graph.cpp" -o CMakeFiles/tucil3_core.dir/src/graph.cpp.s
 
 CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o: CMakeFiles/tucil3_core.dir/flags.make
-CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o: /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/pathFinding.cpp
+CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/pathFinding.cpp
 CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o: CMakeFiles/tucil3_core.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_3) "Building CXX object CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o -MF CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o -c "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Building CXX object CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o -MF CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o.d -o CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o -c "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp"
 
 CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp" > CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp" > CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.i
 
 CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp" -o CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/pathFinding.cpp" -o CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.s
 
 # Object files for target tucil3_core
 tucil3_core_OBJECTS = \
 "CMakeFiles/tucil3_core.dir/src/Board.cpp.o" \
+"CMakeFiles/tucil3_core.dir/src/IO.cpp.o" \
 "CMakeFiles/tucil3_core.dir/src/graph.cpp.o" \
 "CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o"
 
@@ -121,11 +136,12 @@ tucil3_core_OBJECTS = \
 tucil3_core_EXTERNAL_OBJECTS =
 
 libtucil3_core.a: CMakeFiles/tucil3_core.dir/src/Board.cpp.o
+libtucil3_core.a: CMakeFiles/tucil3_core.dir/src/IO.cpp.o
 libtucil3_core.a: CMakeFiles/tucil3_core.dir/src/graph.cpp.o
 libtucil3_core.a: CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o
 libtucil3_core.a: CMakeFiles/tucil3_core.dir/build.make
 libtucil3_core.a: CMakeFiles/tucil3_core.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_4) "Linking CXX static library libtucil3_core.a"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_5) "Linking CXX static library libtucil3_core.a"
 	$(CMAKE_COMMAND) -P CMakeFiles/tucil3_core.dir/cmake_clean_target.cmake
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tucil3_core.dir/link.txt --verbose=$(VERBOSE)
 
@@ -138,6 +154,6 @@ CMakeFiles/tucil3_core.dir/clean:
 .PHONY : CMakeFiles/tucil3_core.dir/clean
 
 CMakeFiles/tucil3_core.dir/depend:
-	cd "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles/tucil3_core.dir/DependInfo.cmake" "--color=$(COLOR)"
+	cd "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles/tucil3_core.dir/DependInfo.cmake" "--color=$(COLOR)"
 .PHONY : CMakeFiles/tucil3_core.dir/depend
 

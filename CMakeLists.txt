@@ -9,6 +9,7 @@ set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
 add_library(tucil3_core
     src/Board.cpp
+    src/IO.cpp
     src/graph.cpp
     src/pathFinding.cpp
 )

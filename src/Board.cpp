@@ -3,6 +3,8 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <limits>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 
@@ -208,6 +210,7 @@ Board readBoardFromFile(const std::string& filePath) {
     if (!input || rowCount <= 0 || colCount <= 0) {
         throw std::runtime_error("Ukuran peta tidak valid.");
     }
+    input.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
     Board board(rowCount, colCount);
     int startCount = 0;
@@ -217,7 +220,12 @@ Board readBoardFromFile(const std::string& filePath) {
 
     for (int row = 0; row < rowCount; ++row) {
         std::string line;
-        input >> line;
+        if (!std::getline(input, line)) {
+            throw std::runtime_error("Jumlah baris peta kurang dari ukuran.");
+        }
+        if (line.empty()) {
+            throw std::runtime_error("Baris peta tidak boleh kosong.");
+        }
         if (static_cast<int>(line.size()) != colCount) {
             throw std::runtime_error("Panjang baris peta tidak sesuai ukuran.");
         }
@@ -242,14 +250,32 @@ Board readBoardFromFile(const std::string& filePath) {
     }
 
     for (int row = 0; row < rowCount; ++row) {
+        std::string line;
+        if (!std::getline(input, line)) {
+            throw std::runtime_error("Jumlah baris cost kurang dari ukuran.");
+        }
+        if (line.empty()) {
+            throw std::runtime_error("Baris cost tidak boleh kosong.");
+        }
+
+        std::istringstream costLine(line);
         for (int col = 0; col < colCount; ++col) {
             int cost = 0;
-            input >> cost;
-            if (!input || cost < 0) {
+            if (!(costLine >> cost) || cost < 0) {
                 throw std::runtime_error("Cost peta tidak valid.");
             }
             board.setCost(row, col, cost);
         }
+
+        std::string extraCost;
+        if (costLine >> extraCost) {
+            throw std::runtime_error("Jumlah cost pada baris tidak sesuai ukuran.");
+        }
+    }
+
+    std::string extraInput;
+    if (input >> extraInput) {
+        throw std::runtime_error("Input memiliki data tambahan setelah matriks cost.");
     }
 
     if (startCount != 1) {

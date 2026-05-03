@@ -1,7 +1,7 @@
 CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: \
- /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/mainGUI.cpp \
+ /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/mainGUI.cpp \
  /usr/include/stdc-predef.h \
- /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/Board.hpp \
+ /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/Board.hpp \
  /usr/include/c++/13/string /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \
@@ -120,8 +120,9 @@ CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: \
  /usr/include/c++/13/bits/stl_vector.h \
  /usr/include/c++/13/bits/stl_bvector.h \
  /usr/include/c++/13/bits/vector.tcc \
- /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/graph.hpp \
- /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/pathFinding.hpp \
+ /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/IO.hpp \
+ /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/graph.hpp \
+ /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/pathFinding.hpp \
  /usr/local/include/raylib.h /usr/include/c++/13/algorithm \
  /usr/include/c++/13/bits/stl_algo.h \
  /usr/include/c++/13/bits/algorithmfwd.h \
@@ -189,8 +190,4 @@ CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: \
  /usr/include/c++/13/bits/allocated_ptr.h \
  /usr/include/c++/13/bits/unique_ptr.h \
  /usr/include/c++/13/ext/aligned_buffer.h \
- /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h \
- /usr/include/c++/13/fstream \
- /usr/include/x86_64-linux-gnu/c++/13/bits/basic_file.h \
- /usr/include/x86_64-linux-gnu/c++/13/bits/c++io.h \
- /usr/include/c++/13/bits/fstream.tcc
+ /usr/include/c++/13/bits/fs_dir.h /usr/include/c++/13/bits/fs_ops.h
