@@ -62,17 +62,15 @@ Semua algoritma tetap memvalidasi urutan angka. Perbedaan `H1`, `H2`, dan `H3` h
 make
 ```
 
-Secara default, `make` akan membangun versi CLI. Target build yang tersedia:
+Makefile digunakan untuk membangun versi CLI.
 
 ```bash
 make CLI
-make GUI
 ```
 
 Hasil build:
 
 - CLI: `bin/tucil3`
-- GUI: `bin/tucil3-gui`
 
 Untuk membersihkan hasil build:
 
@@ -91,15 +89,19 @@ make rebuild
 CMake disediakan agar dependency GUI `raylib` bisa dicari otomatis. Jika raylib belum terpasang, CMake akan mencoba mengunduh raylib melalui `FetchContent`.
 
 ```bash
-cmake -S . -B cmake-build
-cmake --build cmake-build --target tucil3
-cmake --build cmake-build --target tucil3_gui
+cmake -S . -B bin/cmake-build
+cmake --build bin/cmake-build --target tucil3_gui
 ```
 
-Hasil executable tetap dibuat di:
+Folder konfigurasi dan hasil build internal CMake berada di:
 
 ```text
-bin/tucil3
+bin/cmake-build
+```
+
+Executable GUI tetap dibuat di:
+
+```text
 bin/tucil3-gui
 ```
 
@@ -135,17 +137,19 @@ Program juga dapat dijalankan tanpa argumen:
 Build versi GUI:
 
 ```bash
-make GUI
+cmake -S . -B bin/cmake-build
+cmake --build bin/cmake-build --target tucil3_gui
 ```
 
-Jika raylib belum tersedia secara manual, gunakan CMake agar raylib diunduh otomatis:
+Jika raylib belum tersedia secara manual, CMake akan mencoba mengunduh raylib otomatis.
+
+Jalankan GUI dengan target CMake:
 
 ```bash
-cmake -S . -B cmake-build
-cmake --build cmake-build --target tucil3_gui
+cmake --build bin/cmake-build --target run
 ```
 
-Jalankan GUI:
+Atau jalankan executable langsung:
 
 ```bash
 ./bin/tucil3-gui
@@ -197,4 +201,3 @@ Contoh input tersedia di:
 ```text
 test/input/test.txt
 ```
-

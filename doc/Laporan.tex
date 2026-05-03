@@ -1,0 +1,933 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{amssymb}
+
+% Definisi Warna
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Definisi Style Listing
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},   
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,         
+    breaklines=true,                 
+    captionpos=b,                    
+    keepspaces=true,                 
+    numbers=left,                    
+    numbersep=5pt,                  
+    showspaces=false,                
+    showstringspaces=false,
+    showtabs=false,                  
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+% PERBAIKAN: Menggunakan [s] (start-end) untuk komentar blok kurung kurawal
+\lstdefinelanguage{Pseudocode}{
+    keywords={FUNCTION, ALGORITMA, KAMUS, LOKAL, IF, THEN, ELSE, RETURN, FOR, TO, DO, TYPE, LIST, of, AND, OR, NOT, is, input, output, null, true, false, in},
+    sensitive=true,
+    morecomment=[s]{\{}{\}}, 
+    morestring=[b]",
+}
+
+\begin{document}
+
+% ===== HALAMAN JUDUL (COVER) =====
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+
+% ===== Header =====
+{\fontsize{14pt}{16pt}\selectfont\textbf{IF2211 - K01}}\\[1cm]
+
+{\fontsize{16pt}{18pt}\selectfont\textbf{TUGAS KECIL 3 STRATEGI ALGORITMA}}\\[0.5cm]
+
+{\fontsize{12pt}{14pt}\selectfont
+Penyelesaian Permainan Ice Sliding Puzzle dengan Menggunakan Algoritma Pathfinding
+}\\[2cm]
+
+% ===== Logo =====
+\includegraphics[width=0.5\textwidth]{cover.png}\\[2cm]
+
+% ===== Penyusun =====
+{\fontsize{12pt}{14pt}\selectfont Disusun oleh:}\\[0.5cm]
+
+{\fontsize{12pt}{14pt}\selectfont
+\begin{tabular}{c c}
+Raymond Jonathan Dwi Putra Julianto & 13524059
+\end{tabular}
+}
+
+\vfill
+
+% ===== Footer =====
+{\fontsize{14pt}{16pt}\selectfont\textbf{SEKOLAH TEKNIK ELEKTRO DAN INFORMATIKA}}\\[0.5cm]
+{\fontsize{14pt}{16pt}\selectfont\textbf{INSTITUT TEKNOLOGI BANDUNG}}\\[0.5cm]
+
+{\fontsize{14pt}{16pt}\selectfont 2026}
+
+\vspace*{1cm}
+\end{titlepage}
+
+% PERBAIKAN: Menghapus \maketitle karena sudah membuat titlepage manual
+\setcounter{page}{1}
+
+\section{Permasalahan}
+Ice Sliding Puzzle adalah permainan dimana kotak utama atau aktor/pengguna menggerakan karakternya dari titik awal meunju titik tujuan atau keluar  yang berada di atas permukaan es yang licin. Pemain hanya dapat bergerak dengan arah kanan (\textit{ringht}), kiri (\textit{left}), atas (\textit{up}), bawah (\textit{down}). Namun karena permukaannya yang licin, maka karakter hanya bisa berhenti apabila didepan pergerakannya ada sebuah rintangan/batu. Agar semakin menantanga dalam memainkannya, maka diberikan sebuah tile poin penting berupa <i> angka yang menunjukkan tujuan awal sebelum menuju titik tujuan ahkir. <i> angka yang diberikan berupa angka 0 - 9 dengan karakter harus mengikuti dari angka terkecil hingga angka terbesar terahkir. Apabila pemain mendapatkan angka yang lebih besar dari yang seharusna didapatkan terlebih dahulu, maka permainan dianggap \textit{game over}. Selain itu, terdapat tile lava yang apabila karakter melewatinya akan dianggap \textit{game over}.
+Tujuan dari program ini adalah mencari solusi pencarian rute yang diperlukan dari titik awal ke semua titik poin penting yang ada hingga ke titik tujuan dengan biaya \textit{cost} yang seminimal mungkin dengan menggunakan algoritma \textit{pathfinding} yang ada.
+
+\section{Pendekatan Solusi}
+Paradigma yang digunakan dalam menyelesaikan permasalahan ini adalah \textbf{Brute-Force}. Paradigma Brute-Force adalah pendekatan penyelesaian suatu masalah dengan mencoba semua kemungkinan percobaan yang ada hingga ketemu solusi yang benar atau optimal. Metode ini mengevaluasi semua kemungkinan yang ada tanpa adanya optimisasi ataupun heuristik yang umumnya memiliki kompleksitas yang tinggi. Hal ini akan menyebabkan program terlalu lama untuk mencari solusi yang ada dan apabila mendapatkan solusi di iterasi awal yang memungkin itu suatu keberuntungan saja. 
+
+Pada pencarian solusi dari permainan ini dengan paradigma Brute-Force, algoritma akan mencoba meletakkan satu \textit{queen} pada setiap warna yang ada secara terurut berdasarkan letak koordinat pada papan yang diberikan. Algoritma akan mengecek apakah pada semua penempatan \textit{queen} yang diberikan itu sudah memenuhi atau belum dengan syarat permainan tersebut. Jika terdapat salah satu \textit{queen} yang melanggar peraturan yang ada, algoritma akan mencoba posisi lain dari koordinat warna yang ada.
+
+\subsection{Konsep Algoritma}
+Algoritma akan mencoba membaca masukan dari papan yang ada dan memasukkan data ke program. Karena pada syarat permainan tersebut dijelaskan bahwa tidak diperbolehkan \textit{queen} yang berada pada warna yang sama, maka kita akan memastikan bahwa \textit{queen} tepat satu di satu warna saja dan algoritma hanya mengecek bahwa apakah koordinat sekarang sudah sesuai atau tidak dengan syarat permainan. Hal ini setidaknya menunjukkan algoritma tidak terlalu "bodoh" atau memaksakan untuk menaruh queen di warna yang sama. Program kemudian menyimpan semua data terkait warna yang ada beserta daftar koordinat yang termasuk dalam warna tersebut. Setelah semua data dimasukkan, algoritma akan mencoba semua koordinat yang ada pada setiap warna dan mengecek apakah posisi koordinat dari masing masing \textit{queen} sudah sesuai dengan syarat dari permainan yang ada. Apabila syarat permainan belum terpenuhi, maka algoritma akan mencoba koordinat lain dari daftar koordinat dari warna yang ada. Apabila semua koordinat dari semua warna tidak dapat memenuhi syarat permainan, maka dapat dipastikan bahwa papan yang diberikan tersebut tidak memiliki solusi.
+Penjelasan dari algoritma ini dapat dibentuk dalam pseudocode sebagai berikut : 
+
+\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Algoritma Brute Force (Backtracking), label={lst:pseudocode}]
+TYPE Coordinat : < x : integer, y : integer >
+
+TYPE Color : < 
+    letter : char, 
+    position : LIST of Coordinat 
+>
+
+TYPE ListColor : < 
+    count : integer, 
+    colors : LIST of Color 
+>
+
+TYPE Queen : < 
+    queens : integer, 
+    position : LIST of Coordinat 
+>
+
+FUNCTION ListCheck(x1 : integer, y1 : integer, x2 : integer, y2 : integer) -> boolean
+{ Mengembalikan true jika posisi aman, false jika melanggar aturan }
+ALGORITMA
+    { Cek apakah satu baris atau satu kolom }
+    IF (x1 = x2) OR (y1 = y2) THEN
+        RETURN false
+    { Cek apakah berada di kotak sekitar dengan jarak 1 }
+    IF (Absolut(x1 - x2) <= 1) AND (Absolut(y1 - y2) <= 1) THEN
+        RETURN false
+    RETURN true
+
+FUNCTION CheckQueen(ratu : Queen) -> boolean
+{ Memeriksa apakah semua ratu dalam list 'ratu' aman satu sama lain }
+KAMUS LOKAL
+    i, j : integer
+    q1, q2 : Coordinat
+ALGORITMA
+    IF (ratu = null) OR (ratu.position IS EMPTY) THEN
+        RETURN false
+    FOR i <- 0 TO (Panjang(ratu.position) - 1) DO
+        q1 <- ratu.position[i] 
+        FOR j <- (i + 1) TO (Panjang(ratu.position) - 1) DO
+            q2 <- ratu.position[j]
+            IF NOT ListCheck(q1.x, q1.y, q2.x, q2.y) THEN
+                RETURN false
+    RETURN true
+
+FUNCTION Iteration(colorIdx : integer, papan : ListColor, input/output ratu : Queen) -> boolean
+{ Fungsi untuk mencoba kombinasi posisi }
+KAMUS LOKAL
+    currentColor : Color
+    i : integer
+    success : boolean
+    
+ALGORITMA
+    IF colorIdx >= Panjang(papan.colors) THEN
+        casesTried <- casesTried + 1    
+        IF CheckQueen(ratu) THEN
+            RETURN true
+        ELSE
+            RETURN false
+
+    currentColor <- papan.colors[colorIdx]
+    FOR i <- 0 TO (Panjang(currentColor.position) - 1) DO
+        InsertLast(ratu.position, currentColor.position[i])
+        success <- Iteration(colorIdx + 1, papan, ratu)
+        IF success THEN
+            RETURN true
+        DeleteLast(ratu.position)
+    RETURN false
+
+FUNCTION Solve(papan : ListColor, ratu : Queen) -> Queen
+{ Mengembalikan objek Queen yang berisi solusi posisi, atau NULL jika gagal }
+KAMUS LOKAL
+    isFound : boolean
+
+ALGORITMA
+    IF (papan = null) OR (ratu = null) THEN
+        RETURN null
+
+    casesTried <- 0
+    ratu.position <- CreateNewList()
+    isFound <- Iteration(0, papan, ratu)
+
+    IF isFound THEN
+        RETURN ratu
+    ELSE
+        RETURN null
+\end{lstlisting}
+
+\section{Implementasi}
+Program dikembangkan menggunakan bahasa pemrograman \textbf{Java} dengan antarmuka grafis \textbf{JavaFX}. Program ini juga menggunakan \textit{framework} tambahan, yaitu \textbf{Maven}, untuk mempermudah penggunaan \textbf{JavaFX}. Struktur program dibagi menjadi beberapa kelas berikut:
+
+\subsection{Struktur Data}
+\begin{lstlisting}[language=Java, caption=Kode Struktur Data]
+public static int rows;
+public static int cols;
+    
+    public static class Information{
+        public final int iteration;
+        public final int time;
+        Information(int iteration, int time){
+            this.iteration = iteration;
+            this.time = time;
+        }
+    }
+
+    public static class Coordinat{
+        int x;
+        int y;
+
+        Coordinat(int x, int y){
+            this.x = x;
+            this.y = y;
+        }
+    }
+
+    public static class Color{
+        char letter;
+        List<Coordinat> position;
+
+        Color(char letter) {
+            this.letter = letter;
+            this.position = new ArrayList<>();
+        }
+    }
+
+    public static class ListColor{
+        int count;
+        List<Color> colors;
+
+        ListColor(){
+            this.count = 0;
+            this.colors = new ArrayList<>();
+        }
+    }
+
+    public static class Queen{
+        int queens;
+        List<Coordinat> position;
+
+        Queen(int queens) {
+            this.queens = queens;
+            this.position = new ArrayList<>();
+        }
+    }
+
+    public static class Map{
+        Boolean Queen;
+        char Letter;
+        Map(char Letter){
+            this.Letter = Letter;
+            this.Queen = false;
+        }
+    }
+\end{lstlisting}
+
+Struktur data dibuat dengan terdapat enam data class dan dua data primitif yang memiliki kegunaannya masing-masing.
+\begin{enumerate}
+    \item int rows : data primitif yang menyimpan sebuah integer untuk informasi terkait ukuran baris peta.
+    \item int cols : data primitif yang menyimpan sebuah integer untuk informasi terkait ukuran kolom peta.
+    \item class Coordinat : class yang berisikan dua data interger yang digunakan dalam menyimpan informasi dari koordinat pada peta.
+    \item class Color : class yang berisikan data character dan juga class Coordinat yang digunakan dalam menyimpan informasi dari jenis warna tersebut dan juga daftar koordinat yang termasuk dalam warna tersebut.
+    \item class ListColor : class yang berisikan data integer dan juga class Color yang digunakan dalam menyimpan informasi jumlah warna yang ada dan juga daftar class color yang ada pada peta.
+    \item class Queen : class yang berisikan data integer dan juga class Coordinat yang digunakan dalam menyimpan informasi jumlah Queen yang ada dan juga daftar koordinat ratu yang ada pada peta.
+    \item class Map : class yang berisikan data boolean dan character yang digunakan untuk menyimpan informasi pada \textit{cell} setiap matriks pada peta tentang apakah sedang ditempati ratu dan warna pada \textit{cell} tersebut
+\end{enumerate}
+
+\subsection{Pembacaan Input}
+\begin{lstlisting}[language=Java, caption=Kode Pembacaan Input]
+public static void inputColor (ListColor jenis, BufferedReader br) throws IOException{
+        if(jenis == null){ 
+            return;
+        }
+        List<String> lines = new ArrayList<>();
+        String line = br.readLine();
+
+        while (line != null){
+            line = line.trim(); 
+            line = line.replaceAll("\\s+", ""); 
+            if (!line.isEmpty()) { 
+                lines.add(line);
+            }
+            line = br.readLine();
+        }
+        
+        if (lines.isEmpty()){ 
+            throw new IOException();
+        }
+
+        rows = lines.size();
+        cols = lines.get(0).length();
+
+        for(int i = 0; i < rows; i++){
+            String lineRow = lines.get(i);
+            if (lineRow.length() != cols) {
+                throw new IOException();
+            }
+
+            for(int j = 0; j < cols; j++){
+                char letter = lineRow.charAt(j);
+                if (!Character.isLetter(letter) && letter != '.') {
+                    throw new IOException();
+                }
+
+                addCells(jenis, letter, i, j);
+            }
+        }
+    }
+
+    private static void addCells(ListColor jenis, char letter, int x, int y) {
+        for(int i = 0; i < jenis.count; i++){
+                if(jenis.colors.get(i).letter == letter){
+                    jenis.colors.get(i).position.add(new Coordinat(x, y));
+                    return;
+                }
+            }
+        // Untuk count = 0 dan tidak ada dilist saat mendata
+        jenis.count++;
+        Color newColor = new Color(letter);
+        newColor.position.add(new Coordinat(x, y));
+        jenis.colors.add(newColor);
+    }
+\end{lstlisting}
+
+Fungsi inputColor() digunakan untuk memasukkan semua masukan pengguna ke dalam data yang telah dibuat sebelumnya. Fungsi juga menggunakan fungsi bantuan, yaitu addCells() yang berguna untuk menambahkan data pada setiap cell sesuai dengan color yang ada pada data.
+
+\subsection{Kontrol GUI}
+\begin{lstlisting}[language=Java, caption=Kode Kontrol GUI]
+public class GUIController {
+
+    @FXML private TextArea blocksArea;
+    @FXML private Label statusLabel, timeLabel, casesLabel;
+    @FXML private GridPane boardGrid;
+    @FXML private StackPane boardContainer;
+    @FXML private HBox saveBox;
+    @FXML private TextField saveNameField;
+    
+    @FXML
+    public void onLoadClicked(ActionEvent event) {
+        FileChooser chooser = new FileChooser();
+        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
+        File file = chooser.showOpenDialog(boardContainer.getScene().getWindow());
+        if (file == null) return;
+
+        try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
+            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
+            blocksArea.setText(content);
+            boardGrid.getChildren().clear();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @FXML
+    public void onClearClicked(ActionEvent event) {
+        blocksArea.clear();
+        boardGrid.getChildren().clear();
+        saveBox.setVisible(false);
+        timeLabel.setText("Waktu: -");
+        casesLabel.setText("Iterasi: -");
+        statusLabel.setText("Siap.");
+    }
+
+    @FXML
+    public void onSolveClicked(ActionEvent event) {
+        statusLabel.setText("Sedang mencari solusi...");
+        saveBox.setVisible(false);
+        timeLabel.setText("Waktu: -");
+        casesLabel.setText("Iterasi: -");
+        boardGrid.getChildren().clear();
+
+        Data.ListColor papan = new Data.ListColor();
+        String text = blocksArea.getText();
+        if (text == null || text.trim().isEmpty()) {
+            statusLabel.setText("Board kosong!");
+            return;
+        }
+
+        try (BufferedReader br = new BufferedReader(new StringReader(text))) {
+            Data.rows = 0; Data.cols = 0;
+            Data.inputColor(papan, br);
+            if (papan.count == 0) {
+                statusLabel.setText("Board kosong!");
+                return;
+            }
+        } catch (IOException e) {
+            statusLabel.setText("Gagal memproses input.");
+            e.printStackTrace();
+            return;
+        }
+
+        Thread worker = new Thread(() -> {
+            Solve.onUpdateGUI = (snapshotRatu) -> {
+                javafx.application.Platform.runLater(() -> {
+                    generateBoard(papan, snapshotRatu);
+                    statusLabel.setText("Mencoba kemungkinan...");
+                });
+            };
+
+            Data.Queen ratu = new Data.Queen(0);
+            Data.Queen hasil = Solve.Solve(papan, ratu);
+            Data.Information info = Solve.getInfo();
+
+            javafx.application.Platform.runLater(() -> {
+                Solve.onUpdateGUI = null;
+                
+                if (info != null) {
+                    timeLabel.setText("Waktu: " + info.time + " ms");
+                    casesLabel.setText("Iterasi: " + info.iteration);
+                }
+
+                if (hasil != null) {
+                    statusLabel.setText("Solusi Ditemukan!");
+                    saveBox.setVisible(true);
+                    generateBoard(papan, hasil);
+                } else {
+                    statusLabel.setText("Solusi Tidak Ditemukan.");
+                    generateBoard(papan, new Data.Queen(0)); 
+                }
+            });
+        });
+
+        worker.setDaemon(true);
+        worker.start();
+    }
+
+    @FXML
+    public void onSaveTxtClicked(ActionEvent event) {
+        String fileName = saveNameField.getText();
+        if (fileName == null || fileName.trim().isEmpty()) {
+            statusLabel.setText("Nama file tidak boleh kosong!");
+            return;
+        }
+        Save.saveTxt(fileName.trim());
+        statusLabel.setText("Disimpan: " + fileName + ".txt");
+    }
+
+    @FXML
+    public void onSaveImgClicked(ActionEvent event) {
+        String fileName = saveNameField.getText();
+        if (fileName == null || fileName.trim().isEmpty()) {
+            statusLabel.setText("Nama file tidak boleh kosong!");
+            return;
+        }
+        Save.saveImg(fileName.trim());
+        statusLabel.setText("Disimpan: " + fileName + ".png");
+    }
+
+    public void generateBoard(Data.ListColor papan, Data.Queen ratu) {
+        boardGrid.getChildren().clear();
+        Data.Map = new Data.Cell[Data.rows][Data.cols];
+        
+        for (int i = 0; i < papan.colors.size(); i++) {
+            Data.Color c = papan.colors.get(i);
+            for (int j = 0; j < c.position.size(); j++) {
+                Data.Coordinat coord = c.position.get(j);
+                if (coord.x < Data.rows && coord.y < Data.cols) {
+                    Data.Map[coord.x][coord.y] = new Data.Cell(c.letter);
+                }
+            }
+        }
+
+        if (ratu != null && ratu.position != null) {
+            for (int k = 0; k < ratu.position.size(); k++) { 
+                Data.Coordinat qPos = ratu.position.get(k);
+                if(qPos.x < Data.rows && qPos.y < Data.cols && Data.Map[qPos.x][qPos.y] != null){
+                    Data.Map[qPos.x][qPos.y].Queen = true;
+                }
+            }
+        }
+
+        for (int i = 0; i < Data.rows; i++) {
+            for (int j = 0; j < Data.cols; j++) {
+                StackPane cell = new StackPane();
+                cell.setPrefSize(40, 40);
+                Data.Cell cellData = Data.Map[i][j];
+                String colorHex = "#FFFFFF"; 
+
+                if (cellData != null) {
+                    colorHex = Data.getColorHex(cellData.Letter);
+                    cell.setStyle("-fx-background-color: " + colorHex + "; -fx-border-color: rgba(0,0,0,0.1);");
+                    if (cellData.Queen) {
+                        Label queenLabel = new Label("♛");
+                        queenLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: #000000;"); 
+                        cell.getChildren().add(queenLabel);
+                    }
+                } else {
+                    cell.setStyle("-fx-background-color: #ffffff; -fx-border-color: rgba(0,0,0,0.1);");
+                }
+                boardGrid.add(cell, j, i);
+            }
+        }
+    }
+}
+\end{lstlisting}
+
+Kontrol GUI dibagi menjadi beberapa fungsi yang mengatur masing-masing komponen GUI yang ada. Fungsi onLoadClicked() berfungsi untuk menerima dan meminta masukan pengguna berupa file .txt ke dalam program. Fungsi onClearClicked() berfungsi untuk menghapus semua informasi yang pada waktu tersebut dan membuat baru semua data yang ada dan meminta masukan pengguna. Fungsi onSolveClicked() berfungsi untuk melakukan pemanggilan fungsi solve yang telah dibuat dan menghasilkan gambar peta pada layar pengguna. Fungsi onSaveTxtClicked() dan onSaveImgClicked() berfungsi untuk menyimpan hasil solusi yang ditemukan ke dalam bentuk .txt ataupun gambar ke dalam penyimpanan. Fungsi generateBoard() digunakan dalam membuat gambaran peta yang ada dari data yang diberikan fungsi pada waktu tersebut, yang berisikan class ListColor dan juga class Queen. Fungsi generateBoard() dan onSaveImgClicked() memanggil fungsi bantuan getColorHex() pada file lain yang bertugas memetakan semua huruf yang ada menjadi warna-warna yang sesuai dengan huruf tersebut. 
+
+\begin{lstlisting}[language=Java, caption=Fungsi Bantuan Menentukan Warna]
+public static final String[] STANDARD_COLORS = {
+        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FFA500", 
+        "#800080", "#00FFFF", "#FF00FF", "#A52A2A", "#808080", 
+        "#FFC0CB", "#4B0082", "#800000", "#008080", "#000080", 
+        "#808000", "#C0C0C0", "#FFD700", "#FA8072", "#40E0D0"
+    };
+
+    public static String getColorHex(char c) {
+        int charValue = (int) c - 'A';
+        int index = (charValue * 7) % STANDARD_COLORS.length;
+        if (index < 0){
+            index += STANDARD_COLORS.length;
+        }
+        return STANDARD_COLORS[index];
+    }
+\end{lstlisting}
+
+\subsection{Pencarian Solusi}
+\begin{lstlisting}[language=Java, caption=Kode Pencarian Solusi]
+public class Solve{
+    private static long casesTried = 0;
+    private static Data.Information info = null;
+    public static Consumer<Data.Queen> onUpdateGUI = null;
+
+    public static Data.Information getInfo() {
+        return info;
+    }
+
+    public static Data.Queen Solve(Data.ListColor papan, Data.Queen ratu){
+        if(papan == null || ratu == null){
+            return null;
+        }
+        casesTried = 0;
+        info = null;
+        ratu.position = new ArrayList<>();
+        long startTime = System.nanoTime();
+        if(iteration(0, papan, ratu)){
+            long elapsedMs = (System.nanoTime() - startTime) / 1_000_000L;
+            int iter = casesTried > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) casesTried;
+            int time = elapsedMs > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) elapsedMs;
+            info = new Data.Information(iter, time);
+            return ratu;
+        }
+        long elapsedMs = (System.nanoTime() - startTime) / 1_000_000L;
+        int iter = casesTried > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) casesTried;
+        int time = elapsedMs > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) elapsedMs;
+        info = new Data.Information(iter, time);
+
+        return null;
+    }
+
+    // Brute-Force algorithm
+    private static boolean iteration(int colorIdx, Data.ListColor papan, Data.Queen ratu) {
+        if (colorIdx >= papan.colors.size()) { 
+            casesTried++;
+            if (casesTried % 4000 == 0 && onUpdateGUI != null) { // Update GUI
+                
+                Data.Queen snapshot = new Data.Queen(ratu.queens);
+                snapshot.position = new ArrayList<>(ratu.position); 
+                
+                onUpdateGUI.accept(snapshot); 
+
+                try { Thread.sleep(1); } catch (InterruptedException e) {}
+            }
+            if (CheckQueen(ratu)) {
+                return true;
+            }
+            return false;
+        }
+        
+        Data.Color currentColor = papan.colors.get(colorIdx);
+
+        for (int i = 0; i < currentColor.position.size(); i++) {
+            ratu.position.add(currentColor.position.get(i));
+
+            boolean success = iteration(colorIdx + 1, papan, ratu);
+
+            if (success){
+                return true;
+            }
+            ratu.position.remove(ratu.position.size() - 1);
+        }
+        return false;
+    }
+
+    private static boolean CheckQueen(Data.Queen ratu){
+        if(ratu == null || ratu.position == null || ratu.position.isEmpty()){
+        return false;
+        }
+
+        int queenCounts = ratu.position.size();
+        for(int i = 0; i < queenCounts; i++){
+        Data.Coordinat currentQueen = ratu.position.get(i);
+        int x = currentQueen.x;
+        int y = currentQueen.y;
+            for(int j = i + 1; j < queenCounts ;j++){
+                Data.Coordinat checkQueen = ratu.position.get(j);
+                int x2 = checkQueen.x;
+                int y2 = checkQueen.y;
+                if(!ListCheck(x,y,x2,y2)){
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private static boolean ListCheck(int x1, int y1, int x2, int y2){
+        if(x1 == x2 || y1 == y2){ // terletak baris dan kolom sama
+            return false;
+        }
+        if(Math.abs(x1 - x2) <= 1 && Math.abs(y1 - y2) <= 1){ 
+            // terletak disekitar dengan jarak satu kotak
+            return false; 
+        }
+        return true;
+    }
+}
+\end{lstlisting}
+Pencarian solusi dilakukan oleh fungsi Solve() yang berguna untuk menyimpan informasi terkait jumlah percobaan yang telah dicari, lama waktu berjalan program, dan memulai percobaan kombinasi yang ada. Fungsi ini memanggil fungsi iteration() untuk mencoba semua kemungkinan yang menggunakan algoritma yang telah dijelaskan sebelumnya. Selain itu, setiap 1000 kali percobaan yang telah dilakukan akan ditampilkan peta yang ada dan ditampilkan pada GUI. Semua kemungkinan yang ada ini akan dicek menggunakan fungsi CheckQueen() yang mengecek apakah semua letak queen yang ada sudah sesuai dengan syarat permainan dengan bantuan fungsi ListCheck(). Apabila semua percobaan tidak ada yang sesuai dengan syarat, maka akan memberikan informasi ke GUI bahwa tidak ada solusi pada peta tersebut.
+
+\subsection{Penyimpanan Hasil}
+\begin{lstlisting}[language=Java, caption=Kode Penyimpanan Hasil]
+public class Save {
+    private static final String OUTPUT_DIR = "test" + File.separator;
+
+    public static void saveTxt(String fileName) {
+        if (Data.Map == null || Data.rows == 0 || Data.cols == 0) {
+            System.out.println("Tidak ada data untuk disimpan.");
+            return;
+        }
+
+        try {
+            File directory = new File(OUTPUT_DIR);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+            File file = new File(OUTPUT_DIR + fileName + ".txt");
+            FileWriter writer = new FileWriter(file);
+
+            for (int i = 0; i < Data.rows; i++) {
+                for (int j = 0; j < Data.cols; j++) {
+                    Data.Cell cell = Data.Map[i][j];
+                    if (cell != null) {
+                        if (cell.Queen) {
+                            writer.write("#");
+                        } else {
+                            writer.write(cell.Letter);
+                        }
+                    } else {
+                        writer.write(".");
+                    }
+                }
+                writer.write("\n");
+            }
+            writer.write("\n");
+            Data.Information info = Solve.getInfo();
+            if (info != null) {
+                writer.write("Waktu pencarian: " + info.time + " ms\n");
+                writer.write("Banyak kasus yang ditinjau: " + info.iteration + "\n");
+            } else {
+                writer.write("Waktu pencarian: - ms\n");
+                writer.write("Banyak kasus yang ditinjau: -\n");
+            }
+
+            writer.close();
+            System.out.println("File TXT berhasil disimpan ke: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Gagal menyimpan file TXT.");
+            e.printStackTrace();
+        }
+    }
+
+    public static void saveImg(String fileName) {
+        if (Data.Map == null || Data.rows == 0 || Data.cols == 0) {
+            System.out.println("Tidak ada data matriks untuk digambar.");
+            return;
+        }
+
+        try {
+            File directory = new File(OUTPUT_DIR);
+            if (!directory.exists()) {
+                directory.mkdirs();
+            }
+
+            int cellSize = 60;
+            int width = Data.cols * cellSize;
+            int height = Data.rows * cellSize;
+            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
+            Graphics2D g2d = image.createGraphics();
+            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+
+            for (int i = 0; i < Data.rows; i++) {
+                for (int j = 0; j < Data.cols; j++) {
+                    Data.Cell cell = Data.Map[i][j];
+                    int x = j * cellSize;
+                    int y = i * cellSize;
+                    if (cell != null) {
+                        String hexColor = Data.getColorHex(cell.Letter);
+                        g2d.setColor(Color.decode(hexColor));
+                        g2d.fillRect(x, y, cellSize, cellSize);
+                        g2d.setColor(new Color(0, 0, 0, 50)); 
+                        g2d.drawRect(x, y, cellSize, cellSize);
+                        if (cell.Queen) {
+                            g2d.setColor(Color.BLACK);
+                            Font font = new Font("SansSerif", Font.BOLD, cellSize / 2 + 10);
+                            g2d.setFont(font);
+                            String symbol = "♛";
+                            FontMetrics metrics = g2d.getFontMetrics(font);
+                            int xText = x + (cellSize - metrics.stringWidth(symbol)) / 2;
+                            int yText = y + ((cellSize - metrics.getHeight()) / 2) + metrics.getAscent();
+                            g2d.drawString(symbol, xText, yText);
+                        }
+                    } else {
+                        g2d.setColor(Color.WHITE);
+                        g2d.fillRect(x, y, cellSize, cellSize);
+                    }
+                }
+            }
+
+            g2d.dispose();
+            File file = new File(OUTPUT_DIR + fileName + ".png");
+            ImageIO.write(image, "png", file);
+            System.out.println("Gambar PNG (Matriks) disimpan: " + file.getAbsolutePath());
+        } catch (IOException e) {
+            System.out.println("Gagal menyimpan file PNG.");
+            e.printStackTrace();
+        }
+    }
+}
+\end{lstlisting}
+Penyimpanan hasil dari solusi yang didapatkan akan dilakukan oleh fungsi saveTxt() dan saveImg() yang akan menghasilkan file dalam bentuk .txt dan juga image sesuai dengan kebutuhan dari pengguna inginkan.
+\newpage
+\section{Pengujian}
+
+Berikut adalah hasil pengujian program terhadap beberapa kasus uji. Pengujian ini dilakukan pada lingkungan operating system linux pada distro Ubuntu.
+
+% PERBAIKAN: Mengganti lingkungan VERBATIM di dalam tabel dengan \texttt
+% Verbatim standar TIDAK BISA digunakan di dalam tabel LaTeX.
+
+\begin{longtable}{|p{6cm}|p{8cm}|}
+    \hline
+    \textbf{Masukan} & \textbf{Keluaran} \\
+    \hline
+    \endhead
+
+    % TEST CASE 1
+    \textbf{Test Case 1: Solusi Ditemukan} \newline
+    File Input: \texttt{test1.txt} \newline
+    
+    \texttt{AAABBCCCD} \newline 
+    \texttt{ABBBBCECD} \newline 
+    \texttt{ABBBDCECD} \newline 
+    \texttt{AAABDCCCD} \newline 
+    \texttt{BBBBDDDDD} \newline 
+    \texttt{FGGGDDHDD} \newline 
+    \texttt{FGIGDDHDD} \newline 
+    \texttt{FGIGDDHDD} \newline 
+    \texttt{FGGGDDHHH} 
+    & 
+    \begin{center}
+        % Pastikan file gambar ada
+        \includegraphics[width=0.9\linewidth]{test1.png} 
+    \end{center}
+    \textbf{Status:} Solusi Ditemukan \newline
+    \textbf{Waktu:} 6715 ms \newline
+    \textbf{Iterasi:} 21,415,356 \\
+    \hline
+
+    % TEST CASE 2
+    \textbf{Test Case 2: Solusi Ditemukan} \newline
+    File Input : test2.txt \newline
+    \texttt{BAAAACCC} \newline
+    \texttt{BAAAAAAA} \newline
+    \texttt{BAADAAAA} \newline
+    \texttt{AAADDDAA} \newline
+    \texttt{AAAEEDAA} \newline
+    \texttt{AEEEFFAG} \newline
+    \texttt{AAAAAFAG} \newline
+    \texttt{HHHAFFAG}
+    & 
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{test2.png} 
+    \end{center}
+    \textbf{Status:} Solusi Ditemukan \newline
+    \textbf{Waktu:} 60 ms \newline
+    \textbf{Iterasi:} 186,816 \\
+    \hline
+
+    % TEST CASE 3
+    \textbf{Test Case 3: Solusi Ditemukan} \newline
+    File Input : test3.txt \newline
+    \texttt{AAAABBBB} \newline
+    \texttt{CCCCCCCB} \newline
+    \texttt{DDEEEECH} \newline
+    \texttt{DCCCCECH} \newline
+    \texttt{DCFCCECH} \newline
+    \texttt{DCFEEECH} \newline
+    \texttt{ICCCCCCH} \newline
+    \texttt{IIIIIIHH}
+    & 
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{test3.png} 
+    \end{center}
+    \textbf{Status:} Solusi Ditemukan \newline
+    \textbf{Waktu:} 674 ms \newline
+    \textbf{Iterasi:} 2,144,997 \\
+    \hline
+    %TEST CASE 4
+        \textbf{Test Case 4: Solusi Ditemukan} \newline
+    File Input : test4.txt \newline
+    \texttt{AAAAAAAA} \newline
+    \texttt{BBCCAADA} \newline
+    \texttt{BAACCDDA} \newline
+    \texttt{BEAAHHDA} \newline
+    \texttt{FEAAHHAA} \newline
+    \texttt{FEEAAIIA} \newline
+    \texttt{FAAAIIAA} \newline
+    \texttt{FAAAAAAA}
+    & 
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{test4.png} 
+    \end{center}
+    \textbf{Status:} Solusi Ditemukan \newline
+    \textbf{Waktu:} 46 ms \newline
+    \textbf{Iterasi:} 121,840 \\
+    \hline
+    %TEST CASE 5
+        \textbf{Test Case 5: Solusi Ditemukan} \newline
+    File Input : test5.txt \newline
+    \texttt{AAAAAAAAAA} \newline
+    \texttt{BBBBBBBBBB} \newline
+    \texttt{CCCCCCCCCC} \newline
+    \texttt{DDDDDDDDDD} \newline
+    \texttt{EEEEEEEEEE} \newline
+    \texttt{FFFFFFFFFF} \newline
+    \texttt{GGGGGGGGGG} \newline
+    \texttt{HHHHHHHHHH} \newline
+    \texttt{IIIIIIIIII} \newline
+    \texttt{JJJJJJJJJJ}
+    & 
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{test5.png} 
+    \end{center}
+    \textbf{Status:} Solusi Ditemukan \newline
+    \textbf{Waktu:} 74802 ms \newline
+    \textbf{Iterasi:} 241,357,969 \\
+    \hline
+    %TEST CASE 6
+        \textbf{Test Case 6: Kesalahan Masukan} \newline
+    File Input : test6.txt \newline
+    \texttt{AAAAA} \newline
+    \texttt{BBBBB} \newline
+    \texttt{CC CC} \newline
+    \texttt{DDDDD} \newline
+    \texttt{EEEEE}
+    & 
+    \begin{center}
+        Tidak ada Gambar
+    \end{center}
+    \textbf{Status:} - \newline
+    \textbf{Waktu:} - ms \newline
+    \textbf{Iterasi:} - \\
+    \hline
+    %TEST CASE 7
+        \textbf{Test Case 7: Tidak Ada Solusi} \newline
+    File Input : test7.txt \newline
+    \texttt{BBBFFF} \newline
+    \texttt{BBCCAA} \newline
+    \texttt{CCCAAA} \newline
+    \texttt{DDDDDA} \newline
+    \texttt{EEEDAA} \newline
+    \texttt{DDDEEE}
+    & 
+    \begin{center}
+        \includegraphics[width=0.9\linewidth]{test7.png} 
+    \end{center}
+    \textbf{Status:} Tidak Ada Solusi \newline
+    \textbf{Iterasi:} 32,400 \\
+    \hline
+\end{longtable}
+
+% =================================================================
+% BAB 5: LAMPIRAN
+% =================================================================
+\newpage
+\section{Lampiran}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|c|p{9.5cm}|c|c|}
+        \hline
+        \textbf{No} & \textbf{Poin} & \textbf{Ya} & \textbf{Tidak} \\ 
+        \hline
+        1 & Program berhasil dikompilasi tanpa kesalahan & $\checkmark$ &  \\
+        \hline
+        2 & Program berhasil dijalankan & $\checkmark$ &  \\
+        \hline
+        3 & Solusi yang diberikan program benar dan mematuhi aturan permainan & $\checkmark$ &  \\
+        \hline
+        4 & Program dapat membaca masukan berkas .txt serta menyimpan solusi dalam berkas .txt & $\checkmark$ &  \\
+        \hline
+        5 & Program memiliki Graphical User Interface (GUI) & $\checkmark$ &  \\
+        \hline
+        6 & Program dapat menyimpan solusi dalam bentuk file gambar & $\checkmark$ &  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\vspace{1cm}
+\noindent
+\fbox{
+\begin{minipage}{0.97\linewidth}
+Tugas ini disusun sepenuhnya tanpa bantuan kecerdasan buatan
+(\textit{Generative AI}), melainkan hasil pemikiran dan analisis mandiri.
+
+\begin{flushright}
+\includegraphics[height=2cm,keepaspectratio]{ttd.png}\\
+Raymond Jonathan Dwi Putra Julianto
+\end{flushright}
+\end{minipage}%
+}
+
+
+\vspace{1cm}
+\noindent
+\textbf{Tautan Repositori:} \url{https://github.com/Alpaomega1136/Tucil1_13524059}
+
+\end{document}

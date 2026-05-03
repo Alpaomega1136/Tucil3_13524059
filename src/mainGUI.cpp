@@ -15,6 +15,14 @@
 namespace {
 const std::string INPUT_FOLDER = "test/input/";
 const std::string OUTPUT_FOLDER = "test/output/";
+const int WINDOW_WIDTH = 2560;
+const int WINDOW_HEIGHT = 1440;
+const float UI_SCALE = 1.25f;
+const Vector2 UI_OFFSET{80.0f, 45.0f};
+
+Font guiFont;
+bool hasGuiFont = false;
+Camera2D guiCamera;
 
 enum class AlgorithmChoice {
     UCS,
@@ -150,7 +158,15 @@ void saveSolution(const GuiState& state) {
 }
 
 void solve(GuiState& state) {
+    if (state.inputPath.empty()) {
+        throw std::runtime_error("Nama file input tidak boleh kosong.");
+    }
+
     std::string resolvedInputPath = resolveInputPath(state.inputPath);
+    if (!fileExists(resolvedInputPath)) {
+        throw std::runtime_error("File input '" + state.inputPath + "' tidak ditemukan.");
+    }
+
     state.board = readBoardFromFile(resolvedInputPath);
 
     Graph graph;
@@ -184,24 +200,86 @@ void solve(GuiState& state) {
 
 void drawRoundedLines(Rectangle rect, float roundness, int segments, float lineThick, Color color);
 
+std::vector<std::string> getPoppinsFontPaths() {
+    return {
+        getProjectPath("assets/fonts/Poppins-Regular.ttf"),
+        getProjectPath("assets/font/Poppins-Regular.ttf"),
+        getProjectPath("font/Poppins-Regular.ttf"),
+        getProjectPath("Poppins-Regular.ttf"),
+        "/usr/share/fonts/truetype/poppins/Poppins-Regular.ttf",
+        "/usr/share/fonts/opentype/poppins/Poppins-Regular.otf"
+    };
+}
+
+void loadGuiFont() {
+    for (const std::string& fontPath : getPoppinsFontPaths()) {
+        if (!std::filesystem::exists(fontPath)) {
+            continue;
+        }
+
+        guiFont = LoadFontEx(fontPath.c_str(), 96, nullptr, 0);
+        if (guiFont.texture.id != 0) {
+            SetTextureFilter(guiFont.texture, TEXTURE_FILTER_BILINEAR);
+            hasGuiFont = true;
+            return;
+        }
+    }
+}
+
+float measureTextWidth(const std::string& text, int fontSize) {
+    if (hasGuiFont) {
+        return MeasureTextEx(guiFont, text.c_str(), static_cast<float>(fontSize), 1.0f).x;
+    }
+
+    return static_cast<float>(MeasureText(text.c_str(), fontSize));
+}
+
+void drawGuiText(const std::string& text, int x, int y, int fontSize, Color color) {
+    if (hasGuiFont) {
+        DrawTextEx(guiFont, text.c_str(), Vector2{static_cast<float>(x), static_cast<float>(y)}, static_cast<float>(fontSize), 1.0f, color);
+        return;
+    }
+
+    DrawText(text.c_str(), x, y, fontSize, color);
+}
+
+Vector2 getGuiMousePosition() {
+    return GetScreenToWorld2D(GetMousePosition(), guiCamera);
+}
+
 bool drawButton(Rectangle rect, const std::string& text, bool selected = false) {
-    Vector2 mouse = GetMousePosition();
+    Vector2 mouse = getGuiMousePosition();
     bool hovered = CheckCollisionPointRec(mouse, rect);
-    Color fill = selected ? Color{55, 102, 166, 255} : Color{236, 239, 244, 255};
+    Color fill = selected ? Color{70, 130, 180, 255} : Color{80, 80, 80, 255};
     if (hovered) {
-        fill = selected ? Color{47, 88, 143, 255} : Color{225, 230, 238, 255};
+        fill = selected ? Color{60, 110, 160, 255} : Color{100, 100, 100, 255};
     }
 
     DrawRectangleRounded(rect, 0.14f, 8, fill);
-    drawRoundedLines(rect, 0.14f, 8, 1.5f, selected ? Color{29, 61, 108, 255} : Color{132, 142, 156, 255});
+    drawRoundedLines(rect, 0.14f, 8, 1.5f, selected ? Color{40, 90, 140, 255} : Color{120, 120, 120, 255});
 
-    int fontSize = 18;
-    int textWidth = MeasureText(text.c_str(), fontSize);
-    Color textColor = selected ? RAYWHITE : Color{31, 41, 55, 255};
-    DrawText(text.c_str(), static_cast<int>(rect.x + (rect.width - textWidth) / 2),
-             static_cast<int>(rect.y + (rect.height - fontSize) / 2), fontSize, textColor);
+    int fontSize = 24;
+    float textWidth = measureTextWidth(text, fontSize);
+    Color textColor = RAYWHITE;
+    drawGuiText(text, static_cast<int>(rect.x + (rect.width - textWidth) / 2),
+                static_cast<int>(rect.y + (rect.height - fontSize) / 2), fontSize, textColor);
 
     return hovered && IsMouseButtonPressed(MOUSE_LEFT_BUTTON);
+}
+
+void drawPanel(Rectangle rect, const std::string& title = "") {
+    DrawRectangleRounded(rect, 0.035f, 12, Color{60, 60, 60, 255});
+    drawRoundedLines(rect, 0.035f, 12, 1.2f, Color{100, 100, 100, 255});
+    if (!title.empty()) {
+        drawGuiText(title, static_cast<int>(rect.x + 24), static_cast<int>(rect.y + 22), 32, RAYWHITE);
+    }
+}
+
+void drawMetric(Rectangle rect, const std::string& label, const std::string& value) {
+    DrawRectangleRounded(rect, 0.08f, 8, Color{75, 75, 75, 255});
+    drawRoundedLines(rect, 0.08f, 8, 1.0f, Color{110, 110, 110, 255});
+    drawGuiText(label, static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 10), 20, Color{200, 200, 200, 255});
+    drawGuiText(value, static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 40), 30, RAYWHITE);
 }
 
 void drawRoundedLines(Rectangle rect, float roundness, int segments, float lineThick, Color color) {
@@ -213,28 +291,88 @@ void drawRoundedLines(Rectangle rect, float roundness, int segments, float lineT
 #endif
 }
 
+char keyToInputChar(int key) {
+    bool shift = IsKeyDown(KEY_LEFT_SHIFT) || IsKeyDown(KEY_RIGHT_SHIFT);
+
+    if (key >= KEY_A && key <= KEY_Z) {
+        char base = shift ? 'A' : 'a';
+        return static_cast<char>(base + (key - KEY_A));
+    }
+    if (key >= KEY_ZERO && key <= KEY_NINE) {
+        return static_cast<char>('0' + (key - KEY_ZERO));
+    }
+    if (key >= KEY_KP_0 && key <= KEY_KP_9) {
+        return static_cast<char>('0' + (key - KEY_KP_0));
+    }
+
+    if (key == KEY_PERIOD || key == KEY_KP_DECIMAL) {
+        return '.';
+    }
+    if (key == KEY_MINUS || key == KEY_KP_SUBTRACT) {
+        return shift ? '_' : '-';
+    }
+    if (key == KEY_SLASH || key == KEY_KP_DIVIDE) {
+        return '/';
+    }
+    if (key == KEY_BACKSLASH) {
+        return '\\';
+    }
+    if (key == KEY_SPACE) {
+        return ' ';
+    }
+
+    return '\0';
+}
+
 void drawInputBox(Rectangle rect, std::string& value, bool& active) {
-    Vector2 mouse = GetMousePosition();
+    Vector2 mouse = getGuiMousePosition();
     if (IsMouseButtonPressed(MOUSE_LEFT_BUTTON)) {
         active = CheckCollisionPointRec(mouse, rect);
     }
 
     if (active) {
-        int key = GetCharPressed();
-        while (key > 0) {
-            if (key >= 32 && key <= 126 && value.size() < 160) {
-                value.push_back(static_cast<char>(key));
-            }
-            key = GetCharPressed();
+        bool ctrl = IsKeyDown(KEY_LEFT_CONTROL) || IsKeyDown(KEY_RIGHT_CONTROL);
+        bool handledShortcut = false;
+        if (ctrl && IsKeyPressed(KEY_A)) {
+            value.clear();
+            handledShortcut = true;
         }
-        if (IsKeyPressed(KEY_BACKSPACE) && !value.empty()) {
+        if (ctrl && IsKeyPressed(KEY_V)) {
+            const char* clipboard = GetClipboardText();
+            if (clipboard != nullptr) {
+                value += clipboard;
+            }
+            handledShortcut = true;
+        }
+
+        if (!handledShortcut && !ctrl) {
+            int pressedKey = GetKeyPressed();
+            while (pressedKey > 0) {
+                char character = keyToInputChar(pressedKey);
+                if (character != '\0' && value.size() < 160) {
+                    value.push_back(character);
+                }
+                pressedKey = GetKeyPressed();
+            }
+        }
+
+        if ((IsKeyPressed(KEY_BACKSPACE) || IsKeyPressedRepeat(KEY_BACKSPACE)) && !value.empty()) {
             value.pop_back();
         }
     }
 
-    DrawRectangleRounded(rect, 0.08f, 8, RAYWHITE);
-    drawRoundedLines(rect, 0.08f, 8, 1.5f, active ? Color{55, 102, 166, 255} : Color{132, 142, 156, 255});
-    DrawText(value.c_str(), static_cast<int>(rect.x + 12), static_cast<int>(rect.y + 12), 18, Color{31, 41, 55, 255});
+    DrawRectangleRounded(rect, 0.08f, 8, Color{50, 50, 50, 255});
+    drawRoundedLines(rect, 0.08f, 8, 1.5f, active ? Color{100, 150, 255, 255} : Color{100, 100, 100, 255});
+
+    std::string shown = value;
+    int fontSize = 26;
+    while (measureTextWidth(shown, fontSize) > rect.width - 28 && shown.size() > 3) {
+        shown.erase(shown.begin());
+        shown[0] = '.';
+        shown[1] = '.';
+        shown[2] = '.';
+    }
+    drawGuiText(shown, static_cast<int>(rect.x + 14), static_cast<int>(rect.y + 12), fontSize, RAYWHITE);
 }
 
 Color colorForTile(char type) {
@@ -255,14 +393,14 @@ Color colorForTile(char type) {
 
 void drawBoard(const GuiState& state, Rectangle area) {
     if (state.positions.empty()) {
-        DrawText("Belum ada solusi untuk divisualisasikan.", static_cast<int>(area.x), static_cast<int>(area.y), 20, DARKGRAY);
+        drawGuiText("Belum ada solusi untuk divisualisasikan.", static_cast<int>(area.x), static_cast<int>(area.y), 28, Color{150, 150, 150, 255});
         return;
     }
 
     int rows = state.board.getRowCount();
     int cols = state.board.getColCount();
     float cellSize = std::min(area.width / static_cast<float>(cols), area.height / static_cast<float>(rows));
-    cellSize = std::min(cellSize, 54.0f);
+    cellSize = std::min(cellSize, 112.0f);
     float boardWidth = cellSize * cols;
     float boardHeight = cellSize * rows;
     float startX = area.x + (area.width - boardWidth) / 2.0f;
@@ -286,10 +424,10 @@ void drawBoard(const GuiState& state, Rectangle area) {
             }
 
             std::string label(1, shown);
-            int fontSize = static_cast<int>(std::max(18.0f, cellSize * 0.42f));
-            int textWidth = MeasureText(label.c_str(), fontSize);
-            DrawText(label.c_str(), static_cast<int>(cell.x + (cell.width - textWidth) / 2),
-                     static_cast<int>(cell.y + (cell.height - fontSize) / 2), fontSize, RAYWHITE);
+            int fontSize = static_cast<int>(std::max(32.0f, cellSize * 0.52f));
+            float textWidth = measureTextWidth(label, fontSize);
+            drawGuiText(label, static_cast<int>(cell.x + (cell.width - textWidth) / 2),
+                        static_cast<int>(cell.y + (cell.height - fontSize) / 2), fontSize, RAYWHITE);
         }
     }
 }
@@ -307,41 +445,58 @@ std::string heuristicName(HeuristicMode mode) {
 
 int main() {
     SetTraceLogLevel(LOG_WARNING);
-    InitWindow(1180, 760, "Tucil3 Ice Sliding Puzzle Solver");
+    InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Tucil3 Ice Sliding Puzzle Solver");
     SetTargetFPS(60);
+    loadGuiFont();
+    guiCamera = Camera2D{UI_OFFSET, Vector2{0.0f, 0.0f}, 0.0f, UI_SCALE};
 
     GuiState state;
     bool inputActive = false;
 
     while (!WindowShouldClose()) {
         BeginDrawing();
-        ClearBackground(Color{246, 248, 251, 255});
+        ClearBackground(Color{45, 45, 45, 255});
+        BeginMode2D(guiCamera);
 
-        DrawText("Ice Sliding Puzzle Solver", 30, 24, 30, Color{31, 41, 55, 255});
-        DrawText("Input file", 30, 78, 18, Color{75, 85, 99, 255});
-        drawInputBox(Rectangle{120, 66, 360, 46}, state.inputPath, inputActive);
+        drawGuiText("Ice Sliding Puzzle Solver", 44, 30, 60, RAYWHITE);
+        drawGuiText("Tucil3_13524059", 44, 102, 30, Color{200, 200, 200, 255});
 
-        if (drawButton(Rectangle{500, 66, 92, 46}, "UCS", state.algorithm == AlgorithmChoice::UCS)) {
+        Rectangle controlPanel{36, 126, 430, 930};
+        Rectangle boardPanel{498, 126, 1386, 842};
+        drawPanel(controlPanel, "Kontrol");
+        drawPanel(boardPanel, "Visualisasi Board");
+
+        drawGuiText("Input file", 64, 190, 28, Color{220, 220, 220, 255});
+        drawInputBox(Rectangle{64, 226, 374, 62}, state.inputPath, inputActive);
+
+        drawGuiText("Ketik nama file atau path input", 64, 306, 22, Color{180, 180, 180, 255});
+
+        drawGuiText("Algoritma", 64, 380, 28, Color{220, 220, 220, 255});
+        if (drawButton(Rectangle{64, 418, 112, 60}, "UCS", state.algorithm == AlgorithmChoice::UCS)) {
             state.algorithm = AlgorithmChoice::UCS;
         }
-        if (drawButton(Rectangle{602, 66, 92, 46}, "GBFS", state.algorithm == AlgorithmChoice::GBFS)) {
+        if (drawButton(Rectangle{188, 418, 112, 60}, "GBFS", state.algorithm == AlgorithmChoice::GBFS)) {
             state.algorithm = AlgorithmChoice::GBFS;
         }
-        if (drawButton(Rectangle{704, 66, 92, 46}, "A*", state.algorithm == AlgorithmChoice::AStar)) {
+        if (drawButton(Rectangle{312, 418, 112, 60}, "A*", state.algorithm == AlgorithmChoice::AStar)) {
             state.algorithm = AlgorithmChoice::AStar;
         }
 
-        if (drawButton(Rectangle{820, 66, 92, 46}, "H1", state.heuristic == HeuristicMode::FinishOnly)) {
+        drawGuiText("Heuristik", 64, 510, 28, Color{220, 220, 220, 255});
+        if (drawButton(Rectangle{64, 548, 112, 60}, "H1", state.heuristic == HeuristicMode::FinishOnly)) {
             state.heuristic = HeuristicMode::FinishOnly;
         }
-        if (drawButton(Rectangle{922, 66, 92, 46}, "H2", state.heuristic == HeuristicMode::ImportantSequence)) {
+        if (drawButton(Rectangle{188, 548, 112, 60}, "H2", state.heuristic == HeuristicMode::ImportantSequence)) {
             state.heuristic = HeuristicMode::ImportantSequence;
         }
-        if (drawButton(Rectangle{1024, 66, 92, 46}, "H3", state.heuristic == HeuristicMode::OrderedSequence)) {
+        if (drawButton(Rectangle{312, 548, 112, 60}, "H3", state.heuristic == HeuristicMode::OrderedSequence)) {
             state.heuristic = HeuristicMode::OrderedSequence;
         }
 
-        if (drawButton(Rectangle{30, 128, 120, 42}, "Solve")) {
+        drawGuiText(heuristicName(state.heuristic), 64, 622, 24, Color{180, 180, 180, 255});
+
+        bool solvePressed = drawButton(Rectangle{64, 682, 174, 66}, "Solve") || (inputActive && (IsKeyPressed(KEY_ENTER) || IsKeyPressed(KEY_KP_ENTER)));
+        if (solvePressed) {
             try {
                 solve(state);
             } catch (const std::exception& error) {
@@ -351,40 +506,59 @@ int main() {
                 state.message = std::string("Error: ") + error.what();
             }
         }
-        if (drawButton(Rectangle{160, 128, 120, 42}, "Save", false)) {
+        if (drawButton(Rectangle{250, 682, 174, 66}, "Save", false)) {
             try {
                 if (state.hasSolution) {
                     saveSolution(state);
                     state.message = "Solusi disimpan pada " + getOutputPath(state.inputPath);
+                } else {
+                    state.message = "Error: Tidak ada solusi untuk disimpan.";
                 }
             } catch (const std::exception& error) {
                 state.message = std::string("Error: ") + error.what();
             }
         }
-        if (drawButton(Rectangle{300, 128, 88, 42}, "Prev") && state.currentStep > 0) {
+
+        drawGuiText("Playback", 64, 790, 28, Color{220, 220, 220, 255});
+        bool prevPressed = drawButton(Rectangle{64, 828, 174, 62}, "Prev") || (!inputActive && IsKeyPressed(KEY_LEFT));
+        if (prevPressed && state.currentStep > 0) {
             --state.currentStep;
         }
-        if (drawButton(Rectangle{398, 128, 88, 42}, "Next") && state.currentStep + 1 < static_cast<int>(state.positions.size())) {
+        bool nextPressed = drawButton(Rectangle{250, 828, 174, 62}, "Next") || (!inputActive && IsKeyPressed(KEY_RIGHT));
+        if (nextPressed && state.currentStep + 1 < static_cast<int>(state.positions.size())) {
             ++state.currentStep;
         }
 
-        DrawText(state.message.c_str(), 510, 140, 18, Color{55, 65, 81, 255});
-        DrawText(("Heuristic: " + heuristicName(state.heuristic)).c_str(), 30, 190, 18, Color{75, 85, 99, 255});
-
-        std::string summary = "Path: " + directionsToString(state.path) +
-                              "   Cost: " + std::to_string(state.totalCost) +
-                              "   Iterasi: " + std::to_string(state.totalIterations) +
-                              "   Waktu: " + std::to_string(state.elapsedMs) + " ms";
-        DrawText(summary.c_str(), 30, 218, 18, Color{75, 85, 99, 255});
-
         std::string stepText = "Step " + std::to_string(state.currentStep) + " / " +
                                std::to_string(state.positions.empty() ? 0 : static_cast<int>(state.positions.size()) - 1);
-        DrawText(stepText.c_str(), 30, 246, 18, Color{75, 85, 99, 255});
+        drawGuiText(stepText, 64, 906, 34, RAYWHITE);
 
-        drawBoard(state, Rectangle{30, 280, 1120, 440});
+        drawMetric(Rectangle{536, 200, 266, 94}, "Path", state.path.empty() ? "-" : directionsToString(state.path));
+        drawMetric(Rectangle{824, 200, 178, 94}, "Cost", std::to_string(state.totalCost));
+        drawMetric(Rectangle{1024, 200, 196, 94}, "Iterasi", std::to_string(state.totalIterations));
+        drawMetric(Rectangle{1242, 200, 196, 94}, "Waktu", std::to_string(state.elapsedMs) + " ms");
+        drawMetric(Rectangle{1460, 200, 178, 94}, "Step", std::to_string(state.currentStep));
+
+        drawBoard(state, Rectangle{536, 330, 1310, 480});
+
+        Rectangle statusArea{536, 842, 1310, 94};
+        DrawRectangleRounded(statusArea, 0.035f, 10, Color{58, 58, 58, 255});
+        drawRoundedLines(statusArea, 0.035f, 10, 1.0f, Color{95, 95, 95, 255});
+        drawGuiText("Status", 560, 860, 28, Color{220, 220, 220, 255});
+
+        Color statusColor = (state.message.find("Error") != std::string::npos) ? Color{255, 100, 100, 255} : Color{180, 255, 180, 255};
+        if (state.message.find("Solusi tidak ditemukan") != std::string::npos || 
+            state.message == "Masukkan file input, pilih algoritma, lalu tekan Solve.") {
+            statusColor = Color{200, 200, 200, 255};
+        }
+        drawGuiText(state.message, 560, 898, 24, statusColor);
+        EndMode2D();
         EndDrawing();
     }
 
+    if (hasGuiFont) {
+        UnloadFont(guiFont);
+    }
     CloseWindow();
     return 0;
 }

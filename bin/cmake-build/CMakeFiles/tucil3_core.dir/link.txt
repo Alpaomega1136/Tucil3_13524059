@@ -1,0 +1,2 @@
+/usr/bin/ar qc libtucil3_core.a CMakeFiles/tucil3_core.dir/src/Board.cpp.o CMakeFiles/tucil3_core.dir/src/graph.cpp.o CMakeFiles/tucil3_core.dir/src/pathFinding.cpp.o
+/usr/bin/ranlib libtucil3_core.a
