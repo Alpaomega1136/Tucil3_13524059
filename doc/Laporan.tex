@@ -9,6 +9,7 @@
 \usepackage{array}
 \usepackage{hyperref}
 \usepackage{amssymb}
+\graphicspath{{doc/}{./}}
 
 % Definisi Warna
 \definecolor{codegreen}{rgb}{0,0.6,0}
@@ -18,31 +19,30 @@
 
 % Definisi Style Listing
 \lstdefinestyle{mystyle}{
-    backgroundcolor=\color{backcolour},   
+    backgroundcolor=\color{backcolour},
     commentstyle=\color{codegreen},
     keywordstyle=\color{blue}\bfseries,
     numberstyle=\tiny\color{codegray},
     stringstyle=\color{codepurple},
     basicstyle=\ttfamily\footnotesize,
-    breakatwhitespace=false,         
-    breaklines=true,                 
-    captionpos=b,                    
-    keepspaces=true,                 
-    numbers=left,                    
-    numbersep=5pt,                  
-    showspaces=false,                
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
     showstringspaces=false,
-    showtabs=false,                  
+    showtabs=false,
     tabsize=2
 }
 
 \lstset{style=mystyle}
 
-% PERBAIKAN: Menggunakan [s] (start-end) untuk komentar blok kurung kurawal
 \lstdefinelanguage{Pseudocode}{
-    keywords={FUNCTION, ALGORITMA, KAMUS, LOKAL, IF, THEN, ELSE, RETURN, FOR, TO, DO, TYPE, LIST, of, AND, OR, NOT, is, input, output, null, true, false, in},
+    keywords={FUNCTION, ALGORITMA, KAMUS, LOKAL, IF, THEN, ELSE, RETURN, FOR, TO, DO, WHILE, TYPE, LIST, of, AND, OR, NOT, input, output, true, false, null, push, pop},
     sensitive=true,
-    morecomment=[s]{\{}{\}}, 
+    morecomment=[s]{\{}{\}},
     morestring=[b]",
 }
 
@@ -63,7 +63,11 @@ Penyelesaian Permainan Ice Sliding Puzzle dengan Menggunakan Algoritma Pathfindi
 }\\[2cm]
 
 % ===== Logo =====
-\includegraphics[width=0.5\textwidth]{cover.png}\\[2cm]
+\IfFileExists{cover.png}{
+    \includegraphics[width=0.5\textwidth]{cover.png}\\[2cm]
+}{
+    \vspace{3cm}
+}
 
 % ===== Penyusun =====
 {\fontsize{12pt}{14pt}\selectfont Disusun oleh:}\\[0.5cm]
@@ -85,807 +89,571 @@ Raymond Jonathan Dwi Putra Julianto & 13524059
 \vspace*{1cm}
 \end{titlepage}
 
-% PERBAIKAN: Menghapus \maketitle karena sudah membuat titlepage manual
 \setcounter{page}{1}
 
 \section{Permasalahan}
-Ice Sliding Puzzle adalah permainan dimana kotak utama atau aktor/pengguna menggerakan karakternya dari titik awal meunju titik tujuan atau keluar  yang berada di atas permukaan es yang licin. Pemain hanya dapat bergerak dengan arah kanan (\textit{ringht}), kiri (\textit{left}), atas (\textit{up}), bawah (\textit{down}). Namun karena permukaannya yang licin, maka karakter hanya bisa berhenti apabila didepan pergerakannya ada sebuah rintangan/batu. Agar semakin menantanga dalam memainkannya, maka diberikan sebuah tile poin penting berupa <i> angka yang menunjukkan tujuan awal sebelum menuju titik tujuan ahkir. <i> angka yang diberikan berupa angka 0 - 9 dengan karakter harus mengikuti dari angka terkecil hingga angka terbesar terahkir. Apabila pemain mendapatkan angka yang lebih besar dari yang seharusna didapatkan terlebih dahulu, maka permainan dianggap \textit{game over}. Selain itu, terdapat tile lava yang apabila karakter melewatinya akan dianggap \textit{game over}.
-Tujuan dari program ini adalah mencari solusi pencarian rute yang diperlukan dari titik awal ke semua titik poin penting yang ada hingga ke titik tujuan dengan biaya \textit{cost} yang seminimal mungkin dengan menggunakan algoritma \textit{pathfinding} yang ada.
+Ice Sliding Puzzle adalah permainan pencarian jalur pada papan dua dimensi. Pemain atau aktor berada pada satu titik awal dan harus mencapai titik tujuan. Berbeda dengan pergerakan biasa, aktor tidak bergerak satu petak lalu berhenti. Ketika aktor memilih arah atas, kanan, bawah, atau kiri, aktor akan terus meluncur pada arah tersebut sampai berhenti tepat sebelum rintangan.
+
+Pada papan permainan terdapat beberapa jenis tile. Tile \texttt{Z} menyatakan posisi awal aktor, tile \texttt{O} menyatakan posisi tujuan, tile \texttt{X} menyatakan rintangan, tile \texttt{L} menyatakan lava, tile \texttt{*} menyatakan jalan biasa, dan tile angka \texttt{0} sampai \texttt{9} menyatakan tile penting. Tile angka harus dilewati sesuai urutan dari angka terkecil. Apabila aktor melewati angka yang lebih besar sebelum waktunya, jalur tersebut dianggap tidak valid. Apabila aktor melewati lava atau bergerak keluar papan tanpa dapat berhenti, jalur tersebut juga dianggap tidak valid.
+
+Masukan program berupa file teks yang berisi ukuran papan, peta permainan, dan matriks cost setiap tile. Tujuan program adalah mencari jalur dari \texttt{Z} menuju \texttt{O} dengan memperhatikan aturan sliding, urutan tile penting, serta total cost. Program mendukung algoritma Uniform Cost Search (UCS), Greedy Best First Search (GBFS), dan A*.
 
 \section{Pendekatan Solusi}
-Paradigma yang digunakan dalam menyelesaikan permasalahan ini adalah \textbf{Brute-Force}. Paradigma Brute-Force adalah pendekatan penyelesaian suatu masalah dengan mencoba semua kemungkinan percobaan yang ada hingga ketemu solusi yang benar atau optimal. Metode ini mengevaluasi semua kemungkinan yang ada tanpa adanya optimisasi ataupun heuristik yang umumnya memiliki kompleksitas yang tinggi. Hal ini akan menyebabkan program terlalu lama untuk mencari solusi yang ada dan apabila mendapatkan solusi di iterasi awal yang memungkin itu suatu keberuntungan saja. 
+Permasalahan ini diselesaikan dengan pendekatan \textit{graph search}. Papan permainan terlebih dahulu dibaca sebagai objek \texttt{Board}. Setelah itu, program membentuk graph sederhana. Node pada graph bukan semua tile di papan, melainkan hanya posisi yang dapat menjadi tempat aktor berhenti setelah melakukan sliding. Dengan demikian, satu edge pada graph mewakili satu gerakan sliding lengkap dari satu posisi berhenti ke posisi berhenti lain.
 
-Pada pencarian solusi dari permainan ini dengan paradigma Brute-Force, algoritma akan mencoba meletakkan satu \textit{queen} pada setiap warna yang ada secara terurut berdasarkan letak koordinat pada papan yang diberikan. Algoritma akan mengecek apakah pada semua penempatan \textit{queen} yang diberikan itu sudah memenuhi atau belum dengan syarat permainan tersebut. Jika terdapat salah satu \textit{queen} yang melanggar peraturan yang ada, algoritma akan mencoba posisi lain dari koordinat warna yang ada.
+Setiap edge menyimpan arah gerak, node tujuan, cost total tile yang dilalui, dan daftar tile penting yang dilewati selama sliding. Pendekatan ini penting karena tile angka atau finish dapat berada di tengah lintasan sliding. Apabila tile penting berada di tengah lintasan tetapi aktor tidak berhenti di sana, tile tersebut tidak menjadi node tujuan, tetapi tetap dicatat sebagai tile yang dilewati pada edge. Informasi ini kemudian digunakan saat pathfinding untuk memvalidasi urutan angka.
 
-\subsection{Konsep Algoritma}
-Algoritma akan mencoba membaca masukan dari papan yang ada dan memasukkan data ke program. Karena pada syarat permainan tersebut dijelaskan bahwa tidak diperbolehkan \textit{queen} yang berada pada warna yang sama, maka kita akan memastikan bahwa \textit{queen} tepat satu di satu warna saja dan algoritma hanya mengecek bahwa apakah koordinat sekarang sudah sesuai atau tidak dengan syarat permainan. Hal ini setidaknya menunjukkan algoritma tidak terlalu "bodoh" atau memaksakan untuk menaruh queen di warna yang sama. Program kemudian menyimpan semua data terkait warna yang ada beserta daftar koordinat yang termasuk dalam warna tersebut. Setelah semua data dimasukkan, algoritma akan mencoba semua koordinat yang ada pada setiap warna dan mengecek apakah posisi koordinat dari masing masing \textit{queen} sudah sesuai dengan syarat dari permainan yang ada. Apabila syarat permainan belum terpenuhi, maka algoritma akan mencoba koordinat lain dari daftar koordinat dari warna yang ada. Apabila semua koordinat dari semua warna tidak dapat memenuhi syarat permainan, maka dapat dipastikan bahwa papan yang diberikan tersebut tidak memiliki solusi.
-Penjelasan dari algoritma ini dapat dibentuk dalam pseudocode sebagai berikut : 
+Sebagai contoh, misalkan terdapat potongan papan sebagai berikut. Simbol \texttt{Z} adalah posisi awal, \texttt{O} adalah finish, \texttt{0} adalah tile penting, dan \texttt{X} adalah rintangan.
 
-\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Algoritma Brute Force (Backtracking), label={lst:pseudocode}]
-TYPE Coordinat : < x : integer, y : integer >
-
-TYPE Color : < 
-    letter : char, 
-    position : LIST of Coordinat 
->
-
-TYPE ListColor : < 
-    count : integer, 
-    colors : LIST of Color 
->
-
-TYPE Queen : < 
-    queens : integer, 
-    position : LIST of Coordinat 
->
-
-FUNCTION ListCheck(x1 : integer, y1 : integer, x2 : integer, y2 : integer) -> boolean
-{ Mengembalikan true jika posisi aman, false jika melanggar aturan }
-ALGORITMA
-    { Cek apakah satu baris atau satu kolom }
-    IF (x1 = x2) OR (y1 = y2) THEN
-        RETURN false
-    { Cek apakah berada di kotak sekitar dengan jarak 1 }
-    IF (Absolut(x1 - x2) <= 1) AND (Absolut(y1 - y2) <= 1) THEN
-        RETURN false
-    RETURN true
-
-FUNCTION CheckQueen(ratu : Queen) -> boolean
-{ Memeriksa apakah semua ratu dalam list 'ratu' aman satu sama lain }
-KAMUS LOKAL
-    i, j : integer
-    q1, q2 : Coordinat
-ALGORITMA
-    IF (ratu = null) OR (ratu.position IS EMPTY) THEN
-        RETURN false
-    FOR i <- 0 TO (Panjang(ratu.position) - 1) DO
-        q1 <- ratu.position[i] 
-        FOR j <- (i + 1) TO (Panjang(ratu.position) - 1) DO
-            q2 <- ratu.position[j]
-            IF NOT ListCheck(q1.x, q1.y, q2.x, q2.y) THEN
-                RETURN false
-    RETURN true
-
-FUNCTION Iteration(colorIdx : integer, papan : ListColor, input/output ratu : Queen) -> boolean
-{ Fungsi untuk mencoba kombinasi posisi }
-KAMUS LOKAL
-    currentColor : Color
-    i : integer
-    success : boolean
-    
-ALGORITMA
-    IF colorIdx >= Panjang(papan.colors) THEN
-        casesTried <- casesTried + 1    
-        IF CheckQueen(ratu) THEN
-            RETURN true
-        ELSE
-            RETURN false
-
-    currentColor <- papan.colors[colorIdx]
-    FOR i <- 0 TO (Panjang(currentColor.position) - 1) DO
-        InsertLast(ratu.position, currentColor.position[i])
-        success <- Iteration(colorIdx + 1, papan, ratu)
-        IF success THEN
-            RETURN true
-        DeleteLast(ratu.position)
-    RETURN false
-
-FUNCTION Solve(papan : ListColor, ratu : Queen) -> Queen
-{ Mengembalikan objek Queen yang berisi solusi posisi, atau NULL jika gagal }
-KAMUS LOKAL
-    isFound : boolean
-
-ALGORITMA
-    IF (papan = null) OR (ratu = null) THEN
-        RETURN null
-
-    casesTried <- 0
-    ratu.position <- CreateNewList()
-    isFound <- Iteration(0, papan, ratu)
-
-    IF isFound THEN
-        RETURN ratu
-    ELSE
-        RETURN null
+\begin{lstlisting}[caption=Contoh Board Sederhana]
+XXXXXXX
+X0***OX
+X**X**X
+X****XX
+XZ***XX
+XXXXXXX
 \end{lstlisting}
 
-\section{Implementasi}
-Program dikembangkan menggunakan bahasa pemrograman \textbf{Java} dengan antarmuka grafis \textbf{JavaFX}. Program ini juga menggunakan \textit{framework} tambahan, yaitu \textbf{Maven}, untuk mempermudah penggunaan \textbf{JavaFX}. Struktur program dibagi menjadi beberapa kelas berikut:
+Pada representasi board biasa, setiap karakter pada matriks adalah tile. Namun pada graph sederhana, tidak semua tile menjadi node. Node hanya dibuat pada posisi yang dapat menjadi tempat aktor berhenti. Dari posisi awal \texttt{Z}, aktor dapat melakukan sliding ke atas sampai berhenti tepat sebelum rintangan atau melakukan sliding ke kanan sampai berhenti sebelum rintangan. Tile yang hanya dilewati di tengah lintasan tidak otomatis menjadi node.
 
-\subsection{Struktur Data}
-\begin{lstlisting}[language=Java, caption=Kode Struktur Data]
-public static int rows;
-public static int cols;
-    
-    public static class Information{
-        public final int iteration;
-        public final int time;
-        Information(int iteration, int time){
-            this.iteration = iteration;
-            this.time = time;
-        }
-    }
+Sebagai ilustrasi, beberapa node yang terbentuk dapat direpresentasikan seperti berikut.
 
-    public static class Coordinat{
-        int x;
-        int y;
-
-        Coordinat(int x, int y){
-            this.x = x;
-            this.y = y;
-        }
-    }
-
-    public static class Color{
-        char letter;
-        List<Coordinat> position;
-
-        Color(char letter) {
-            this.letter = letter;
-            this.position = new ArrayList<>();
-        }
-    }
-
-    public static class ListColor{
-        int count;
-        List<Color> colors;
-
-        ListColor(){
-            this.count = 0;
-            this.colors = new ArrayList<>();
-        }
-    }
-
-    public static class Queen{
-        int queens;
-        List<Coordinat> position;
-
-        Queen(int queens) {
-            this.queens = queens;
-            this.position = new ArrayList<>();
-        }
-    }
-
-    public static class Map{
-        Boolean Queen;
-        char Letter;
-        Map(char Letter){
-            this.Letter = Letter;
-            this.Queen = false;
-        }
-    }
-\end{lstlisting}
-
-Struktur data dibuat dengan terdapat enam data class dan dua data primitif yang memiliki kegunaannya masing-masing.
-\begin{enumerate}
-    \item int rows : data primitif yang menyimpan sebuah integer untuk informasi terkait ukuran baris peta.
-    \item int cols : data primitif yang menyimpan sebuah integer untuk informasi terkait ukuran kolom peta.
-    \item class Coordinat : class yang berisikan dua data interger yang digunakan dalam menyimpan informasi dari koordinat pada peta.
-    \item class Color : class yang berisikan data character dan juga class Coordinat yang digunakan dalam menyimpan informasi dari jenis warna tersebut dan juga daftar koordinat yang termasuk dalam warna tersebut.
-    \item class ListColor : class yang berisikan data integer dan juga class Color yang digunakan dalam menyimpan informasi jumlah warna yang ada dan juga daftar class color yang ada pada peta.
-    \item class Queen : class yang berisikan data integer dan juga class Coordinat yang digunakan dalam menyimpan informasi jumlah Queen yang ada dan juga daftar koordinat ratu yang ada pada peta.
-    \item class Map : class yang berisikan data boolean dan character yang digunakan untuk menyimpan informasi pada \textit{cell} setiap matriks pada peta tentang apakah sedang ditempati ratu dan warna pada \textit{cell} tersebut
-\end{enumerate}
-
-\subsection{Pembacaan Input}
-\begin{lstlisting}[language=Java, caption=Kode Pembacaan Input]
-public static void inputColor (ListColor jenis, BufferedReader br) throws IOException{
-        if(jenis == null){ 
-            return;
-        }
-        List<String> lines = new ArrayList<>();
-        String line = br.readLine();
-
-        while (line != null){
-            line = line.trim(); 
-            line = line.replaceAll("\\s+", ""); 
-            if (!line.isEmpty()) { 
-                lines.add(line);
-            }
-            line = br.readLine();
-        }
-        
-        if (lines.isEmpty()){ 
-            throw new IOException();
-        }
-
-        rows = lines.size();
-        cols = lines.get(0).length();
-
-        for(int i = 0; i < rows; i++){
-            String lineRow = lines.get(i);
-            if (lineRow.length() != cols) {
-                throw new IOException();
-            }
-
-            for(int j = 0; j < cols; j++){
-                char letter = lineRow.charAt(j);
-                if (!Character.isLetter(letter) && letter != '.') {
-                    throw new IOException();
-                }
-
-                addCells(jenis, letter, i, j);
-            }
-        }
-    }
-
-    private static void addCells(ListColor jenis, char letter, int x, int y) {
-        for(int i = 0; i < jenis.count; i++){
-                if(jenis.colors.get(i).letter == letter){
-                    jenis.colors.get(i).position.add(new Coordinat(x, y));
-                    return;
-                }
-            }
-        // Untuk count = 0 dan tidak ada dilist saat mendata
-        jenis.count++;
-        Color newColor = new Color(letter);
-        newColor.position.add(new Coordinat(x, y));
-        jenis.colors.add(newColor);
-    }
-\end{lstlisting}
-
-Fungsi inputColor() digunakan untuk memasukkan semua masukan pengguna ke dalam data yang telah dibuat sebelumnya. Fungsi juga menggunakan fungsi bantuan, yaitu addCells() yang berguna untuk menambahkan data pada setiap cell sesuai dengan color yang ada pada data.
-
-\subsection{Kontrol GUI}
-\begin{lstlisting}[language=Java, caption=Kode Kontrol GUI]
-public class GUIController {
-
-    @FXML private TextArea blocksArea;
-    @FXML private Label statusLabel, timeLabel, casesLabel;
-    @FXML private GridPane boardGrid;
-    @FXML private StackPane boardContainer;
-    @FXML private HBox saveBox;
-    @FXML private TextField saveNameField;
-    
-    @FXML
-    public void onLoadClicked(ActionEvent event) {
-        FileChooser chooser = new FileChooser();
-        chooser.getExtensionFilters().add(new FileChooser.ExtensionFilter("Text files", "*.txt"));
-        File file = chooser.showOpenDialog(boardContainer.getScene().getWindow());
-        if (file == null) return;
-
-        try (BufferedReader br = Files.newBufferedReader(file.toPath(), StandardCharsets.UTF_8)) {
-            String content = Files.readString(file.toPath(), StandardCharsets.UTF_8);
-            blocksArea.setText(content);
-            boardGrid.getChildren().clear();
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @FXML
-    public void onClearClicked(ActionEvent event) {
-        blocksArea.clear();
-        boardGrid.getChildren().clear();
-        saveBox.setVisible(false);
-        timeLabel.setText("Waktu: -");
-        casesLabel.setText("Iterasi: -");
-        statusLabel.setText("Siap.");
-    }
-
-    @FXML
-    public void onSolveClicked(ActionEvent event) {
-        statusLabel.setText("Sedang mencari solusi...");
-        saveBox.setVisible(false);
-        timeLabel.setText("Waktu: -");
-        casesLabel.setText("Iterasi: -");
-        boardGrid.getChildren().clear();
-
-        Data.ListColor papan = new Data.ListColor();
-        String text = blocksArea.getText();
-        if (text == null || text.trim().isEmpty()) {
-            statusLabel.setText("Board kosong!");
-            return;
-        }
-
-        try (BufferedReader br = new BufferedReader(new StringReader(text))) {
-            Data.rows = 0; Data.cols = 0;
-            Data.inputColor(papan, br);
-            if (papan.count == 0) {
-                statusLabel.setText("Board kosong!");
-                return;
-            }
-        } catch (IOException e) {
-            statusLabel.setText("Gagal memproses input.");
-            e.printStackTrace();
-            return;
-        }
-
-        Thread worker = new Thread(() -> {
-            Solve.onUpdateGUI = (snapshotRatu) -> {
-                javafx.application.Platform.runLater(() -> {
-                    generateBoard(papan, snapshotRatu);
-                    statusLabel.setText("Mencoba kemungkinan...");
-                });
-            };
-
-            Data.Queen ratu = new Data.Queen(0);
-            Data.Queen hasil = Solve.Solve(papan, ratu);
-            Data.Information info = Solve.getInfo();
-
-            javafx.application.Platform.runLater(() -> {
-                Solve.onUpdateGUI = null;
-                
-                if (info != null) {
-                    timeLabel.setText("Waktu: " + info.time + " ms");
-                    casesLabel.setText("Iterasi: " + info.iteration);
-                }
-
-                if (hasil != null) {
-                    statusLabel.setText("Solusi Ditemukan!");
-                    saveBox.setVisible(true);
-                    generateBoard(papan, hasil);
-                } else {
-                    statusLabel.setText("Solusi Tidak Ditemukan.");
-                    generateBoard(papan, new Data.Queen(0)); 
-                }
-            });
-        });
-
-        worker.setDaemon(true);
-        worker.start();
-    }
-
-    @FXML
-    public void onSaveTxtClicked(ActionEvent event) {
-        String fileName = saveNameField.getText();
-        if (fileName == null || fileName.trim().isEmpty()) {
-            statusLabel.setText("Nama file tidak boleh kosong!");
-            return;
-        }
-        Save.saveTxt(fileName.trim());
-        statusLabel.setText("Disimpan: " + fileName + ".txt");
-    }
-
-    @FXML
-    public void onSaveImgClicked(ActionEvent event) {
-        String fileName = saveNameField.getText();
-        if (fileName == null || fileName.trim().isEmpty()) {
-            statusLabel.setText("Nama file tidak boleh kosong!");
-            return;
-        }
-        Save.saveImg(fileName.trim());
-        statusLabel.setText("Disimpan: " + fileName + ".png");
-    }
-
-    public void generateBoard(Data.ListColor papan, Data.Queen ratu) {
-        boardGrid.getChildren().clear();
-        Data.Map = new Data.Cell[Data.rows][Data.cols];
-        
-        for (int i = 0; i < papan.colors.size(); i++) {
-            Data.Color c = papan.colors.get(i);
-            for (int j = 0; j < c.position.size(); j++) {
-                Data.Coordinat coord = c.position.get(j);
-                if (coord.x < Data.rows && coord.y < Data.cols) {
-                    Data.Map[coord.x][coord.y] = new Data.Cell(c.letter);
-                }
-            }
-        }
-
-        if (ratu != null && ratu.position != null) {
-            for (int k = 0; k < ratu.position.size(); k++) { 
-                Data.Coordinat qPos = ratu.position.get(k);
-                if(qPos.x < Data.rows && qPos.y < Data.cols && Data.Map[qPos.x][qPos.y] != null){
-                    Data.Map[qPos.x][qPos.y].Queen = true;
-                }
-            }
-        }
-
-        for (int i = 0; i < Data.rows; i++) {
-            for (int j = 0; j < Data.cols; j++) {
-                StackPane cell = new StackPane();
-                cell.setPrefSize(40, 40);
-                Data.Cell cellData = Data.Map[i][j];
-                String colorHex = "#FFFFFF"; 
-
-                if (cellData != null) {
-                    colorHex = Data.getColorHex(cellData.Letter);
-                    cell.setStyle("-fx-background-color: " + colorHex + "; -fx-border-color: rgba(0,0,0,0.1);");
-                    if (cellData.Queen) {
-                        Label queenLabel = new Label("♛");
-                        queenLabel.setStyle("-fx-font-size: 24px; -fx-text-fill: #000000;"); 
-                        cell.getChildren().add(queenLabel);
-                    }
-                } else {
-                    cell.setStyle("-fx-background-color: #ffffff; -fx-border-color: rgba(0,0,0,0.1);");
-                }
-                boardGrid.add(cell, j, i);
-            }
-        }
-    }
-}
-\end{lstlisting}
-
-Kontrol GUI dibagi menjadi beberapa fungsi yang mengatur masing-masing komponen GUI yang ada. Fungsi onLoadClicked() berfungsi untuk menerima dan meminta masukan pengguna berupa file .txt ke dalam program. Fungsi onClearClicked() berfungsi untuk menghapus semua informasi yang pada waktu tersebut dan membuat baru semua data yang ada dan meminta masukan pengguna. Fungsi onSolveClicked() berfungsi untuk melakukan pemanggilan fungsi solve yang telah dibuat dan menghasilkan gambar peta pada layar pengguna. Fungsi onSaveTxtClicked() dan onSaveImgClicked() berfungsi untuk menyimpan hasil solusi yang ditemukan ke dalam bentuk .txt ataupun gambar ke dalam penyimpanan. Fungsi generateBoard() digunakan dalam membuat gambaran peta yang ada dari data yang diberikan fungsi pada waktu tersebut, yang berisikan class ListColor dan juga class Queen. Fungsi generateBoard() dan onSaveImgClicked() memanggil fungsi bantuan getColorHex() pada file lain yang bertugas memetakan semua huruf yang ada menjadi warna-warna yang sesuai dengan huruf tersebut. 
-
-\begin{lstlisting}[language=Java, caption=Fungsi Bantuan Menentukan Warna]
-public static final String[] STANDARD_COLORS = {
-        "#FF0000", "#00FF00", "#0000FF", "#FFFF00", "#FFA500", 
-        "#800080", "#00FFFF", "#FF00FF", "#A52A2A", "#808080", 
-        "#FFC0CB", "#4B0082", "#800000", "#008080", "#000080", 
-        "#808000", "#C0C0C0", "#FFD700", "#FA8072", "#40E0D0"
-    };
-
-    public static String getColorHex(char c) {
-        int charValue = (int) c - 'A';
-        int index = (charValue * 7) % STANDARD_COLORS.length;
-        if (index < 0){
-            index += STANDARD_COLORS.length;
-        }
-        return STANDARD_COLORS[index];
-    }
-\end{lstlisting}
-
-\subsection{Pencarian Solusi}
-\begin{lstlisting}[language=Java, caption=Kode Pencarian Solusi]
-public class Solve{
-    private static long casesTried = 0;
-    private static Data.Information info = null;
-    public static Consumer<Data.Queen> onUpdateGUI = null;
-
-    public static Data.Information getInfo() {
-        return info;
-    }
-
-    public static Data.Queen Solve(Data.ListColor papan, Data.Queen ratu){
-        if(papan == null || ratu == null){
-            return null;
-        }
-        casesTried = 0;
-        info = null;
-        ratu.position = new ArrayList<>();
-        long startTime = System.nanoTime();
-        if(iteration(0, papan, ratu)){
-            long elapsedMs = (System.nanoTime() - startTime) / 1_000_000L;
-            int iter = casesTried > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) casesTried;
-            int time = elapsedMs > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) elapsedMs;
-            info = new Data.Information(iter, time);
-            return ratu;
-        }
-        long elapsedMs = (System.nanoTime() - startTime) / 1_000_000L;
-        int iter = casesTried > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) casesTried;
-        int time = elapsedMs > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) elapsedMs;
-        info = new Data.Information(iter, time);
-
-        return null;
-    }
-
-    // Brute-Force algorithm
-    private static boolean iteration(int colorIdx, Data.ListColor papan, Data.Queen ratu) {
-        if (colorIdx >= papan.colors.size()) { 
-            casesTried++;
-            if (casesTried % 4000 == 0 && onUpdateGUI != null) { // Update GUI
-                
-                Data.Queen snapshot = new Data.Queen(ratu.queens);
-                snapshot.position = new ArrayList<>(ratu.position); 
-                
-                onUpdateGUI.accept(snapshot); 
-
-                try { Thread.sleep(1); } catch (InterruptedException e) {}
-            }
-            if (CheckQueen(ratu)) {
-                return true;
-            }
-            return false;
-        }
-        
-        Data.Color currentColor = papan.colors.get(colorIdx);
-
-        for (int i = 0; i < currentColor.position.size(); i++) {
-            ratu.position.add(currentColor.position.get(i));
-
-            boolean success = iteration(colorIdx + 1, papan, ratu);
-
-            if (success){
-                return true;
-            }
-            ratu.position.remove(ratu.position.size() - 1);
-        }
-        return false;
-    }
-
-    private static boolean CheckQueen(Data.Queen ratu){
-        if(ratu == null || ratu.position == null || ratu.position.isEmpty()){
-        return false;
-        }
-
-        int queenCounts = ratu.position.size();
-        for(int i = 0; i < queenCounts; i++){
-        Data.Coordinat currentQueen = ratu.position.get(i);
-        int x = currentQueen.x;
-        int y = currentQueen.y;
-            for(int j = i + 1; j < queenCounts ;j++){
-                Data.Coordinat checkQueen = ratu.position.get(j);
-                int x2 = checkQueen.x;
-                int y2 = checkQueen.y;
-                if(!ListCheck(x,y,x2,y2)){
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private static boolean ListCheck(int x1, int y1, int x2, int y2){
-        if(x1 == x2 || y1 == y2){ // terletak baris dan kolom sama
-            return false;
-        }
-        if(Math.abs(x1 - x2) <= 1 && Math.abs(y1 - y2) <= 1){ 
-            // terletak disekitar dengan jarak satu kotak
-            return false; 
-        }
-        return true;
-    }
-}
-\end{lstlisting}
-Pencarian solusi dilakukan oleh fungsi Solve() yang berguna untuk menyimpan informasi terkait jumlah percobaan yang telah dicari, lama waktu berjalan program, dan memulai percobaan kombinasi yang ada. Fungsi ini memanggil fungsi iteration() untuk mencoba semua kemungkinan yang menggunakan algoritma yang telah dijelaskan sebelumnya. Selain itu, setiap 1000 kali percobaan yang telah dilakukan akan ditampilkan peta yang ada dan ditampilkan pada GUI. Semua kemungkinan yang ada ini akan dicek menggunakan fungsi CheckQueen() yang mengecek apakah semua letak queen yang ada sudah sesuai dengan syarat permainan dengan bantuan fungsi ListCheck(). Apabila semua percobaan tidak ada yang sesuai dengan syarat, maka akan memberikan informasi ke GUI bahwa tidak ada solusi pada peta tersebut.
-
-\subsection{Penyimpanan Hasil}
-\begin{lstlisting}[language=Java, caption=Kode Penyimpanan Hasil]
-public class Save {
-    private static final String OUTPUT_DIR = "test" + File.separator;
-
-    public static void saveTxt(String fileName) {
-        if (Data.Map == null || Data.rows == 0 || Data.cols == 0) {
-            System.out.println("Tidak ada data untuk disimpan.");
-            return;
-        }
-
-        try {
-            File directory = new File(OUTPUT_DIR);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
-            File file = new File(OUTPUT_DIR + fileName + ".txt");
-            FileWriter writer = new FileWriter(file);
-
-            for (int i = 0; i < Data.rows; i++) {
-                for (int j = 0; j < Data.cols; j++) {
-                    Data.Cell cell = Data.Map[i][j];
-                    if (cell != null) {
-                        if (cell.Queen) {
-                            writer.write("#");
-                        } else {
-                            writer.write(cell.Letter);
-                        }
-                    } else {
-                        writer.write(".");
-                    }
-                }
-                writer.write("\n");
-            }
-            writer.write("\n");
-            Data.Information info = Solve.getInfo();
-            if (info != null) {
-                writer.write("Waktu pencarian: " + info.time + " ms\n");
-                writer.write("Banyak kasus yang ditinjau: " + info.iteration + "\n");
-            } else {
-                writer.write("Waktu pencarian: - ms\n");
-                writer.write("Banyak kasus yang ditinjau: -\n");
-            }
-
-            writer.close();
-            System.out.println("File TXT berhasil disimpan ke: " + file.getAbsolutePath());
-        } catch (IOException e) {
-            System.out.println("Gagal menyimpan file TXT.");
-            e.printStackTrace();
-        }
-    }
-
-    public static void saveImg(String fileName) {
-        if (Data.Map == null || Data.rows == 0 || Data.cols == 0) {
-            System.out.println("Tidak ada data matriks untuk digambar.");
-            return;
-        }
-
-        try {
-            File directory = new File(OUTPUT_DIR);
-            if (!directory.exists()) {
-                directory.mkdirs();
-            }
-
-            int cellSize = 60;
-            int width = Data.cols * cellSize;
-            int height = Data.rows * cellSize;
-            BufferedImage image = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
-            Graphics2D g2d = image.createGraphics();
-            g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-            g2d.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-
-            for (int i = 0; i < Data.rows; i++) {
-                for (int j = 0; j < Data.cols; j++) {
-                    Data.Cell cell = Data.Map[i][j];
-                    int x = j * cellSize;
-                    int y = i * cellSize;
-                    if (cell != null) {
-                        String hexColor = Data.getColorHex(cell.Letter);
-                        g2d.setColor(Color.decode(hexColor));
-                        g2d.fillRect(x, y, cellSize, cellSize);
-                        g2d.setColor(new Color(0, 0, 0, 50)); 
-                        g2d.drawRect(x, y, cellSize, cellSize);
-                        if (cell.Queen) {
-                            g2d.setColor(Color.BLACK);
-                            Font font = new Font("SansSerif", Font.BOLD, cellSize / 2 + 10);
-                            g2d.setFont(font);
-                            String symbol = "♛";
-                            FontMetrics metrics = g2d.getFontMetrics(font);
-                            int xText = x + (cellSize - metrics.stringWidth(symbol)) / 2;
-                            int yText = y + ((cellSize - metrics.getHeight()) / 2) + metrics.getAscent();
-                            g2d.drawString(symbol, xText, yText);
-                        }
-                    } else {
-                        g2d.setColor(Color.WHITE);
-                        g2d.fillRect(x, y, cellSize, cellSize);
-                    }
-                }
-            }
-
-            g2d.dispose();
-            File file = new File(OUTPUT_DIR + fileName + ".png");
-            ImageIO.write(image, "png", file);
-            System.out.println("Gambar PNG (Matriks) disimpan: " + file.getAbsolutePath());
-        } catch (IOException e) {
-            System.out.println("Gagal menyimpan file PNG.");
-            e.printStackTrace();
-        }
-    }
-}
-\end{lstlisting}
-Penyimpanan hasil dari solusi yang didapatkan akan dilakukan oleh fungsi saveTxt() dan saveImg() yang akan menghasilkan file dalam bentuk .txt dan juga image sesuai dengan kebutuhan dari pengguna inginkan.
-\newpage
-\section{Pengujian}
-
-Berikut adalah hasil pengujian program terhadap beberapa kasus uji. Pengujian ini dilakukan pada lingkungan operating system linux pada distro Ubuntu.
-
-% PERBAIKAN: Mengganti lingkungan VERBATIM di dalam tabel dengan \texttt
-% Verbatim standar TIDAK BISA digunakan di dalam tabel LaTeX.
-
-\begin{longtable}{|p{6cm}|p{8cm}|}
+\begin{longtable}{|c|c|c|p{6cm}|}
     \hline
-    \textbf{Masukan} & \textbf{Keluaran} \\
+    \textbf{Node} & \textbf{Posisi} & \textbf{Tile} & \textbf{Alasan Menjadi Node} \\
     \hline
     \endhead
-
-    % TEST CASE 1
-    \textbf{Test Case 1: Solusi Ditemukan} \newline
-    File Input: \texttt{test1.txt} \newline
-    
-    \texttt{AAABBCCCD} \newline 
-    \texttt{ABBBBCECD} \newline 
-    \texttt{ABBBDCECD} \newline 
-    \texttt{AAABDCCCD} \newline 
-    \texttt{BBBBDDDDD} \newline 
-    \texttt{FGGGDDHDD} \newline 
-    \texttt{FGIGDDHDD} \newline 
-    \texttt{FGIGDDHDD} \newline 
-    \texttt{FGGGDDHHH} 
-    & 
-    \begin{center}
-        % Pastikan file gambar ada
-        \includegraphics[width=0.9\linewidth]{test1.png} 
-    \end{center}
-    \textbf{Status:} Solusi Ditemukan \newline
-    \textbf{Waktu:} 6715 ms \newline
-    \textbf{Iterasi:} 21,415,356 \\
+    N0 & Baris 4, Kolom 1 & \texttt{Z} & Posisi awal aktor. \\
     \hline
-
-    % TEST CASE 2
-    \textbf{Test Case 2: Solusi Ditemukan} \newline
-    File Input : test2.txt \newline
-    \texttt{BAAAACCC} \newline
-    \texttt{BAAAAAAA} \newline
-    \texttt{BAADAAAA} \newline
-    \texttt{AAADDDAA} \newline
-    \texttt{AAAEEDAA} \newline
-    \texttt{AEEEFFAG} \newline
-    \texttt{AAAAAFAG} \newline
-    \texttt{HHHAFFAG}
-    & 
-    \begin{center}
-        \includegraphics[width=0.9\linewidth]{test2.png} 
-    \end{center}
-    \textbf{Status:} Solusi Ditemukan \newline
-    \textbf{Waktu:} 60 ms \newline
-    \textbf{Iterasi:} 186,816 \\
+    N1 & Baris 1, Kolom 1 & \texttt{0} & Hasil slide ke atas dari \texttt{Z} dan berhenti sebelum dinding atas. \\
     \hline
-
-    % TEST CASE 3
-    \textbf{Test Case 3: Solusi Ditemukan} \newline
-    File Input : test3.txt \newline
-    \texttt{AAAABBBB} \newline
-    \texttt{CCCCCCCB} \newline
-    \texttt{DDEEEECH} \newline
-    \texttt{DCCCCECH} \newline
-    \texttt{DCFCCECH} \newline
-    \texttt{DCFEEECH} \newline
-    \texttt{ICCCCCCH} \newline
-    \texttt{IIIIIIHH}
-    & 
-    \begin{center}
-        \includegraphics[width=0.9\linewidth]{test3.png} 
-    \end{center}
-    \textbf{Status:} Solusi Ditemukan \newline
-    \textbf{Waktu:} 674 ms \newline
-    \textbf{Iterasi:} 2,144,997 \\
+    N2 & Baris 4, Kolom 4 & \texttt{*} & Hasil slide ke kanan dari \texttt{Z} dan berhenti sebelum rintangan. \\
     \hline
-    %TEST CASE 4
-        \textbf{Test Case 4: Solusi Ditemukan} \newline
-    File Input : test4.txt \newline
-    \texttt{AAAAAAAA} \newline
-    \texttt{BBCCAADA} \newline
-    \texttt{BAACCDDA} \newline
-    \texttt{BEAAHHDA} \newline
-    \texttt{FEAAHHAA} \newline
-    \texttt{FEEAAIIA} \newline
-    \texttt{FAAAIIAA} \newline
-    \texttt{FAAAAAAA}
-    & 
-    \begin{center}
-        \includegraphics[width=0.9\linewidth]{test4.png} 
-    \end{center}
-    \textbf{Status:} Solusi Ditemukan \newline
-    \textbf{Waktu:} 46 ms \newline
-    \textbf{Iterasi:} 121,840 \\
-    \hline
-    %TEST CASE 5
-        \textbf{Test Case 5: Solusi Ditemukan} \newline
-    File Input : test5.txt \newline
-    \texttt{AAAAAAAAAA} \newline
-    \texttt{BBBBBBBBBB} \newline
-    \texttt{CCCCCCCCCC} \newline
-    \texttt{DDDDDDDDDD} \newline
-    \texttt{EEEEEEEEEE} \newline
-    \texttt{FFFFFFFFFF} \newline
-    \texttt{GGGGGGGGGG} \newline
-    \texttt{HHHHHHHHHH} \newline
-    \texttt{IIIIIIIIII} \newline
-    \texttt{JJJJJJJJJJ}
-    & 
-    \begin{center}
-        \includegraphics[width=0.9\linewidth]{test5.png} 
-    \end{center}
-    \textbf{Status:} Solusi Ditemukan \newline
-    \textbf{Waktu:} 74802 ms \newline
-    \textbf{Iterasi:} 241,357,969 \\
-    \hline
-    %TEST CASE 6
-        \textbf{Test Case 6: Kesalahan Masukan} \newline
-    File Input : test6.txt \newline
-    \texttt{AAAAA} \newline
-    \texttt{BBBBB} \newline
-    \texttt{CC CC} \newline
-    \texttt{DDDDD} \newline
-    \texttt{EEEEE}
-    & 
-    \begin{center}
-        Tidak ada Gambar
-    \end{center}
-    \textbf{Status:} - \newline
-    \textbf{Waktu:} - ms \newline
-    \textbf{Iterasi:} - \\
-    \hline
-    %TEST CASE 7
-        \textbf{Test Case 7: Tidak Ada Solusi} \newline
-    File Input : test7.txt \newline
-    \texttt{BBBFFF} \newline
-    \texttt{BBCCAA} \newline
-    \texttt{CCCAAA} \newline
-    \texttt{DDDDDA} \newline
-    \texttt{EEEDAA} \newline
-    \texttt{DDDEEE}
-    & 
-    \begin{center}
-        \includegraphics[width=0.9\linewidth]{test7.png} 
-    \end{center}
-    \textbf{Status:} Tidak Ada Solusi \newline
-    \textbf{Iterasi:} 32,400 \\
+    N3 & Baris 1, Kolom 5 & \texttt{O} & Posisi finish yang dapat menjadi posisi berhenti. \\
     \hline
 \end{longtable}
 
-% =================================================================
-% BAB 5: LAMPIRAN
-% =================================================================
+Dari node-node tersebut, edge menyimpan satu gerakan sliding penuh. Contohnya, apabila dari \texttt{Z} aktor bergerak ke atas, maka edge yang terbentuk adalah \texttt{N0 -> N1} dengan arah \texttt{U}. Apabila dari \texttt{N1} aktor bergerak ke kanan dan melewati beberapa tile kosong sampai berhenti di \texttt{O}, maka edge yang terbentuk adalah \texttt{N1 -> N3} dengan arah \texttt{R}. Jika di tengah edge terdapat angka yang dilewati, angka tersebut disimpan pada \texttt{passedImportant}, bukan dipaksa menjadi node baru kecuali aktor memang berhenti tepat di tile tersebut.
+
+\subsection{Konsep Algoritma}
+Secara umum, proses pencarian solusi dibagi menjadi tiga tahap utama. Tahap pertama adalah membaca dan memvalidasi input. Tahap kedua adalah membangun graph sederhana dari papan. Tahap ketiga adalah menjalankan algoritma pencarian pada graph tersebut.
+
+\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Pembentukan Graph Sederhana, label={lst:buildgraph}]
+FUNCTION BuildGraph(board) -> graph
+ALGORITMA
+    root <- node pada posisi start Z
+    frontier.push(root)
+    processed <- empty set
+
+    WHILE frontier tidak kosong DO
+        current <- frontier.pop()
+        IF current sudah ada di processed THEN
+            continue
+        processed.insert(current)
+
+        FOR setiap arah gerak DO
+            slideResult <- Slide(board, current, arah)
+            IF slideResult tidak valid THEN
+                continue
+
+            nextNode <- node pada posisi berhenti slideResult
+            IF nextNode belum ada THEN
+                tambahkan nextNode ke graph
+                frontier.push(nextNode)
+
+            tambahkan edge current -> nextNode
+            simpan arah, cost, dan passedImportant pada edge
+
+    hitung nilai heuristic setiap node
+    RETURN graph
+\end{lstlisting}
+
+Setelah graph terbentuk, pencarian dilakukan dengan state yang tidak hanya menyimpan posisi node, tetapi juga angka berikutnya yang harus dilewati. Hal ini dibutuhkan karena dua jalur dapat berhenti pada node yang sama tetapi memiliki progres angka yang berbeda.
+
+\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Pathfinding, label={lst:pathfinding}]
+FUNCTION Search(graph, algorithm, heuristicMode) -> solution
+ALGORITMA
+    rootState <- (rootNode, nextNumber = 0, g = 0)
+    frontier.push(rootState)
+    bestCost[rootNode, 0] <- 0
+
+    WHILE frontier tidak kosong DO
+        current <- frontier.pop dengan prioritas terbaik
+
+        IF current berada di O AND semua angka selesai THEN
+            RETURN path dari start ke current
+
+        FOR setiap edge dari current.node DO
+            nextNumber <- current.nextNumber
+            valid <- ApplyPassedImportant(edge.passedImportant, nextNumber)
+            IF NOT valid THEN
+                continue
+
+            newCost <- current.g + edge.cost
+            IF newCost lebih baik dari bestCost[edge.to, nextNumber] THEN
+                hitung priority sesuai UCS, GBFS, atau A*
+                frontier.push(state baru)
+
+    RETURN tidak ada solusi
+\end{lstlisting}
+
+\subsection{Algoritma Pencarian}
+Program menyediakan tiga algoritma pencarian.
+
+\begin{enumerate}
+    \item \textbf{Uniform Cost Search (UCS)} menggunakan total cost aktual dari titik awal sebagai prioritas. Algoritma ini tidak menggunakan heuristic.
+    \item \textbf{Greedy Best First Search (GBFS)} menggunakan nilai heuristic sebagai prioritas. Algoritma ini cenderung cepat menuju target yang terlihat dekat, tetapi tidak selalu menghasilkan cost optimal.
+    \item \textbf{A*} menggunakan penjumlahan cost aktual dan heuristic, yaitu $f(n) = g(n) + h(n)$. Algoritma ini mencoba menyeimbangkan cost yang sudah ditempuh dan estimasi jarak ke target.
+\end{enumerate}
+
+Langkah kerja pathfinding dimulai dengan memasukkan state awal ke priority queue. State awal memiliki node posisi \texttt{Z}, nilai cost $g(n) = 0$, dan \texttt{nextNumber = 0}. Selanjutnya, program mengambil state dengan prioritas terbaik dari priority queue. Untuk UCS, prioritas terbaik berarti cost aktual terkecil. Untuk GBFS, prioritas terbaik berarti heuristic terkecil. Untuk A*, prioritas terbaik berarti nilai $g(n) + h(n)$ terkecil.
+
+Setelah sebuah state diambil, program mengecek apakah state tersebut sudah berada pada finish \texttt{O} dan seluruh angka penting sudah dilewati. Jika sudah, program membentuk kembali path solusi dari catatan parent. Jika belum, program mengevaluasi semua edge keluar dari node tersebut. Setiap edge dicek terlebih dahulu apakah melewati angka yang benar. Jika edge melewati angka yang belum boleh dilewati, edge tersebut dibuang. Jika valid, program menghitung cost baru, membandingkannya dengan cost terbaik untuk state tujuan, lalu memasukkan state baru ke priority queue apabila state tersebut lebih baik dari kunjungan sebelumnya.
+
+\subsection{Heuristic}
+Untuk GBFS dan A*, program menyediakan tiga mode heuristic.
+
+\begin{enumerate}
+    \item \textbf{H1 FinishOnly}: menghitung jarak Manhattan dari node saat ini ke finish \texttt{O}.
+    \item \textbf{H2 ImportantSequence}: menghitung jarak Manhattan dari node saat ini ke angka penting berikutnya. Jika semua angka sudah selesai, jarak dihitung ke finish.
+    \item \textbf{H3 OrderedSequence}: menghitung jumlah estimasi jarak Manhattan dari node saat ini ke semua target yang belum selesai secara berurutan, lalu menuju finish.
+\end{enumerate}
+
+Heuristic yang digunakan merupakan estimasi berdasarkan jarak Manhattan. Karena permainan menggunakan mekanisme sliding dan cost tile dapat berbeda-beda, heuristic ini dipakai sebagai pembantu prioritas pencarian, bukan sebagai simulasi gerakan sebenarnya. Validitas jalur tetap ditentukan oleh proses sliding dan pengecekan aturan pada edge.
+
+\section{Analisis Algoritma}
+\subsection{Definisi \texorpdfstring{$g(n)$}{g(n)} dan \texorpdfstring{$f(n)$}{f(n)}}
+Pada implementasi program, sebuah state pencarian tidak hanya didefinisikan oleh posisi node, tetapi juga oleh angka berikutnya yang harus dilewati. Dengan demikian, state dapat ditulis sebagai pasangan $(nodeId, nextNumber)$. Nilai \textbf{$g(n)$} adalah total cost aktual dari posisi awal \texttt{Z} sampai state $n$. Cost ini dihitung dari penjumlahan cost semua tile yang dilewati pada setiap edge sliding. Jika sebuah edge memiliki cost $c$, maka state baru memiliki nilai:
+
+\[
+g(n') = g(n) + c
+\]
+
+Pada UCS, nilai prioritas pencarian hanya menggunakan $g(n)$. Pada GBFS, prioritas pencarian hanya menggunakan heuristic $h(n)$. Pada A*, nilai \textbf{$f(n)$} didefinisikan sebagai:
+
+\[
+f(n) = g(n) + h(n)
+\]
+
+Nilai $h(n)$ bergantung pada mode heuristic yang dipilih. H1 menghitung jarak ke finish, H2 menghitung jarak ke target penting berikutnya, sedangkan H3 menghitung estimasi jarak ke seluruh target yang tersisa secara berurutan sampai finish.
+
+\subsection{Admissibility Heuristic A*}
+Suatu heuristic disebut \textit{admissible} apabila tidak pernah melebih-lebihkan cost optimal sebenarnya dari sebuah state menuju goal. Pada program ini, heuristic yang digunakan berbasis jarak Manhattan. Untuk peta grid biasa dengan gerakan satu langkah dan cost minimum 1, Manhattan sering dapat digunakan sebagai heuristic admissible. Namun, pada Ice Sliding Puzzle, gerakan yang tersedia adalah sliding sampai berhenti di depan rintangan, bukan bergerak satu tile secara bebas. Selain itu, cost pada tile dapat berbeda-beda dan sebuah slide dapat melewati banyak tile sekaligus.
+
+Karena itu, heuristic H1, H2, dan H3 pada implementasi ini \textbf{tidak selalu dapat dijamin admissible} untuk seluruh kemungkinan peta. Jarak Manhattan dapat menjadi lebih besar atau lebih kecil dibanding cost sliding sebenarnya bergantung pada bentuk rintangan dan nilai cost tile. H3 juga menjumlahkan beberapa jarak Manhattan menuju target berurutan, sehingga dapat menjadi estimasi yang lebih agresif. Dengan demikian, A* pada program ini menggunakan heuristic sebagai panduan pencarian, tetapi optimalitas secara teoritis hanya terjamin apabila heuristic yang digunakan tidak melebihi cost optimal sebenarnya.
+
+\subsection{Perbandingan Teoritis Algoritma}
+Secara teoritis, UCS menjamin solusi dengan cost minimum apabila semua edge memiliki cost tidak negatif. Hal ini sesuai dengan implementasi karena cost input divalidasi agar tidak negatif. Kelemahan UCS adalah jumlah state yang dieksplorasi dapat lebih besar karena UCS tidak memiliki informasi arah menuju goal.
+
+GBFS cenderung lebih cepat apabila heuristic cukup baik karena selalu memilih state yang terlihat paling dekat dengan target. Namun, GBFS tidak memperhitungkan cost yang sudah ditempuh. Akibatnya, GBFS dapat menemukan solusi lebih cepat tetapi tidak menjamin solusi dengan cost minimum.
+
+A* berada di antara UCS dan GBFS karena mempertimbangkan $g(n)$ dan $h(n)$ sekaligus. Jika heuristic admissible dan konsisten, A* dapat menemukan solusi optimal dengan ekspansi state yang lebih sedikit dibanding UCS. Pada implementasi ini, karena heuristic berbasis Manhattan tidak selalu admissible pada permainan sliding, A* tetap berguna sebagai algoritma terarah, tetapi jaminan optimalitasnya bergantung pada karakteristik peta dan heuristic yang dipilih.
+
+\subsection{Analisis Kompleksitas}
+Misalkan $V$ adalah jumlah node pada graph sederhana dan $E$ adalah jumlah edge. Karena setiap node mencoba empat arah sliding, jumlah edge maksimum berada pada orde $O(4V)$ atau $O(V)$ dalam konteks graph hasil simplifikasi. Proses membentuk graph membutuhkan simulasi sliding. Jika panjang maksimum lintasan sliding adalah $L$, maka pembuatan graph memiliki kompleksitas sekitar $O(V \cdot 4L)$.
+
+Untuk pencarian, UCS dan A* menggunakan priority queue. Operasi memasukkan dan mengambil state dari frontier membutuhkan $O(\log S)$, dengan $S$ adalah jumlah state yang disimpan. Karena state juga memuat \texttt{nextNumber}, jumlah state maksimum dapat diperkirakan sebesar $V \cdot (K + 1)$, dengan $K$ adalah jumlah tile angka penting. Dengan demikian, kompleksitas pencarian dapat diperkirakan sebesar:
+
+\[
+O(EK \log(VK))
+\]
+
+GBFS memiliki struktur frontier yang sama, tetapi prioritasnya hanya berdasarkan heuristic. Kompleksitas terburuknya tetap dapat mencapai jumlah state yang sama, walaupun dalam praktik jumlah state yang diekspansi dapat lebih kecil apabila heuristic mengarah ke solusi dengan baik.
+
+\section{Implementasi}
+Program dikembangkan menggunakan bahasa pemrograman \textbf{C++17}. Program terdiri atas versi CLI dan GUI. Versi CLI dibangun menggunakan \texttt{Makefile}, sedangkan versi GUI dibangun menggunakan \texttt{CMake} dan \texttt{raylib}. Struktur utama program dibagi ke dalam beberapa file, yaitu \texttt{Board}, \texttt{Graph}, \texttt{PathFinding}, \texttt{IO}, \texttt{main}, dan \texttt{mainGUI}.
+
+\subsection{Source Program}
+Source program ditulis menggunakan bahasa C++17 dan dibagi ke dalam folder \texttt{include} dan \texttt{src}. Folder \texttt{include} berisi deklarasi struktur data dan class, sedangkan folder \texttt{src} berisi implementasi. Pembagian file source program adalah sebagai berikut.
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{File} & \textbf{Keterangan} \\
+    \hline
+    \endhead
+    \texttt{include/Board.hpp} dan \texttt{src/Board.cpp} & Menyimpan representasi board, validasi input, cost tile, posisi start/finish, dan simulasi sliding. \\
+    \hline
+    \texttt{include/graph.hpp} dan \texttt{src/graph.cpp} & Menyimpan representasi graph sederhana, node, edge, heuristic per node, dan proses pembentukan graph dari board. \\
+    \hline
+    \texttt{include/pathFinding.hpp} dan \texttt{src/pathFinding.cpp} & Menyimpan implementasi UCS, GBFS, dan A* serta validasi urutan angka saat edge dilewati. \\
+    \hline
+    \texttt{include/IO.hpp} dan \texttt{src/IO.cpp} & Menyimpan fungsi input/output bersama untuk CLI dan GUI, termasuk path input, path output, dan penyimpanan solusi. \\
+    \hline
+    \texttt{src/main.cpp} & Entry point CLI untuk menerima input pengguna, menjalankan algoritma, dan menampilkan hasil. \\
+    \hline
+    \texttt{src/mainGUI.cpp} & Entry point GUI berbasis raylib untuk input file, pemilihan algoritma, visualisasi board, playback path, dan penyimpanan solusi. \\
+    \hline
+\end{longtable}
+
+Potongan source utama yang menjadi inti pemilihan algoritma berada pada fungsi pencarian berikut.
+
+\begin{lstlisting}[language=C++, caption=Penentuan Prioritas Algoritma]
+const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
+    if (algorithm == Algorithm::UCS) {
+        return gCost;
+    }
+    if (algorithm == Algorithm::GBFS) {
+        return heuristicCost;
+    }
+    return gCost + heuristicCost;
+};
+\end{lstlisting}
+
+\subsection{Struktur Data}
+Struktur data utama program berada pada \texttt{Board.hpp} dan \texttt{graph.hpp}. Struktur \texttt{Tile} menyimpan informasi posisi, cost, dan tipe tile. Struktur \texttt{Position} menyimpan koordinat baris dan kolom. Struktur \texttt{SlideResult} menyimpan hasil satu gerakan sliding.
+
+\begin{lstlisting}[language=C++, caption=Struktur Data Board]
+struct Tile {
+    int x = 0;
+    int y = 0;
+    int cost = 0;
+    char type = '*';
+};
+
+struct Position {
+    int row = 0;
+    int col = 0;
+};
+
+struct PassedTile {
+    int row = 0;
+    int col = 0;
+    char type = '*';
+};
+
+struct SlideResult {
+    bool valid = false;
+    int stopRow = 0;
+    int stopCol = 0;
+    int cost = 0;
+    char direction = '?';
+    std::vector<PassedTile> passedImportant;
+};
+\end{lstlisting}
+
+Graph dibentuk menggunakan pointer antar node. Setiap \texttt{GraphNode} menyimpan daftar \texttt{Edge}. Setiap edge mengarah langsung ke node tetangga, sehingga pathfinding dapat mengakses node tujuan tanpa perlu mencari ulang berdasarkan id.
+
+\begin{lstlisting}[language=C++, caption=Struktur Data Graph]
+struct Edge {
+    GraphNode* neighbor = nullptr;
+    int neighborId = -1;
+    int costEdge = 0;
+    int costPrediction = 0;
+    char direction = '?';
+    bool canStopAtNeighbor = true;
+    std::vector<PassedTile> passedImportant;
+};
+
+struct GraphNode {
+    int nodeId = -1;
+    int row = 0;
+    int col = 0;
+    char type = '*';
+    int finishPredictionCost = 0;
+    std::vector<PredictionCost> predictionCosts;
+    std::vector<Edge> neighbors;
+};
+\end{lstlisting}
+
+\subsection{Pembacaan Input}
+Pembacaan input dilakukan oleh fungsi \texttt{readBoardFromFile}. Fungsi ini membaca ukuran papan, baris peta, dan matriks cost. Program juga melakukan validasi agar input sesuai format. Beberapa kondisi yang dianggap salah adalah tidak adanya start \texttt{Z}, tidak adanya finish \texttt{O}, jumlah \texttt{Z} atau \texttt{O} lebih dari satu, baris kosong, panjang baris tidak sesuai, cost kurang atau lebih, serta adanya data tambahan setelah matriks cost.
+
+\begin{lstlisting}[language=C++, caption=Validasi Input Board]
+if (startCount != 1) {
+    throw std::runtime_error("Peta harus memiliki tepat satu titik awal Z.");
+}
+if (goalCount != 1) {
+    throw std::runtime_error("Peta harus memiliki tepat satu titik tujuan O.");
+}
+
+for (int number = 0; number <= maxNumber; ++number) {
+    if (!foundNumbers[number]) {
+        throw std::runtime_error("Angka pada peta harus berurutan mulai dari 0.");
+    }
+}
+\end{lstlisting}
+
+Input file dapat dipanggil langsung dari path penuh, path relatif, atau nama file saja. Apabila pengguna hanya memasukkan nama file seperti \texttt{test.txt}, program akan mencarinya pada folder \texttt{test/input/test.txt}. Pengaturan ini dibuat pada modul \texttt{IO}.
+
+\subsection{Simulasi Sliding}
+Gerakan aktor disimulasikan oleh fungsi \texttt{slide}. Fungsi ini menerima posisi awal, delta arah, dan karakter arah. Selama bergerak, fungsi akan menjumlahkan cost tile yang dilewati dan menyimpan angka atau finish yang dilewati ke dalam \texttt{passedImportant}. Jika gerakan keluar papan, melewati lava, atau langsung menabrak rintangan tanpa bergerak, hasil sliding dianggap tidak valid.
+
+\begin{lstlisting}[language=C++, caption=Inti Simulasi Sliding]
+while (true) {
+    int nextRow = currentRow + deltaRow;
+    int nextCol = currentCol + deltaCol;
+
+    if (!isInside(nextRow, nextCol)) {
+        return SlideResult{};
+    }
+
+    if (isWall(nextRow, nextCol)) {
+        if (!hasMoved) {
+            return SlideResult{};
+        }
+
+        result.valid = true;
+        result.stopRow = currentRow;
+        result.stopCol = currentCol;
+        return result;
+    }
+
+    if (isLava(nextRow, nextCol)) {
+        return SlideResult{};
+    }
+}
+\end{lstlisting}
+
+\subsection{Pembuatan Graph}
+Graph dibuat dari papan dengan memulai dari posisi \texttt{Z}. Program melakukan BFS terhadap node yang dapat menjadi posisi berhenti. Untuk setiap node, program mencoba empat arah sliding. Jika hasil sliding valid, program membuat atau mengambil node tujuan, lalu menambahkan edge dari node saat ini ke node tujuan.
+
+\begin{lstlisting}[language=C++, caption=Pembentukan Edge Graph]
+for (int i = 0; i < 4; ++i) {
+    SlideResult result = board.slide(currentNode->row, currentNode->col,
+                                     DELTA_ROW[i], DELTA_COL[i], DIRECTIONS[i]);
+    if (!result.valid) {
+        continue;
+    }
+
+    GraphNode* nextNode = getOrAddNode(result.stopRow, result.stopCol,
+                                       board.getType(result.stopRow, result.stopCol));
+
+    addNeighbor(currentNode, nextNode, result.cost,
+                board.getHeuristicCost(result.stopRow, result.stopCol),
+                result.direction, result.passedImportant);
+}
+\end{lstlisting}
+
+\subsection{Pencarian Solusi}
+Pencarian solusi dilakukan pada kelas \texttt{PathFinding}. Algoritma UCS, GBFS, dan A* memakai fungsi internal yang sama, yaitu \texttt{search}. Perbedaannya berada pada perhitungan prioritas.
+
+\begin{lstlisting}[language=C++, caption=Prioritas Pencarian]
+const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
+    if (algorithm == Algorithm::UCS) {
+        return gCost;
+    }
+    if (algorithm == Algorithm::GBFS) {
+        return heuristicCost;
+    }
+    return gCost + heuristicCost;
+};
+\end{lstlisting}
+
+Sebelum state baru dimasukkan ke frontier, edge yang dilewati akan divalidasi terhadap urutan angka. Jika edge melewati angka yang lebih besar dari angka yang seharusnya, edge tersebut tidak digunakan.
+
+\begin{lstlisting}[language=C++, caption=Validasi Urutan Angka pada Edge]
+bool advanceImportantSequence(int currentNext,
+                              const std::vector<PassedTile>& passedTiles,
+                              int& nextAfter) {
+    nextAfter = currentNext;
+    for (const PassedTile& tile : passedTiles) {
+        if (tile.type < '0' || tile.type > '9') {
+            continue;
+        }
+
+        int digit = tile.type - '0';
+        if (digit < nextAfter) {
+            continue;
+        }
+        if (digit == nextAfter) {
+            ++nextAfter;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Antarmuka CLI dan GUI}
+Program memiliki dua antarmuka. Antarmuka CLI berada pada \texttt{main.cpp}. Pengguna dapat memasukkan file input, memilih algoritma, memilih heuristic untuk GBFS atau A*, dan memilih apakah solusi akan disimpan.
+
+Antarmuka GUI berada pada \texttt{mainGUI.cpp}. GUI dibuat menggunakan \texttt{raylib}. Pada GUI, pengguna dapat mengetik nama file input, memilih algoritma, memilih heuristic, menjalankan solver, melihat visualisasi board, melakukan playback langkah solusi, dan menyimpan hasil solusi.
+
+\subsection{Modul IO}
+Modul \texttt{IO} dibuat agar CLI dan GUI tidak memiliki kode input/output yang berulang. Fungsi di dalam modul ini digunakan untuk menyelesaikan path input, membentuk path output, mengubah path solusi menjadi string, mencetak board dengan posisi aktor, serta menyimpan solusi ke file.
+
+\begin{lstlisting}[language=C++, caption=Fungsi IO Bersama]
+std::string resolveInputPath(const std::string& path);
+std::string getOutputPath(const std::string& inputPath);
+std::string directionsToString(const std::vector<char>& path);
+
+void saveSolution(const Board& board,
+                  const std::vector<char>& path,
+                  const std::vector<Position>& positions,
+                  int totalCost,
+                  int totalIterations,
+                  long long elapsedMs,
+                  const std::string& outputPath);
+\end{lstlisting}
+
+\subsection{Multithreading}
+Untuk memenuhi bagian bonus kecepatan komputasi, program menggunakan multithreading pada dua bagian. Bagian pertama adalah pembacaan dan validasi input board. Baris peta dan baris cost dibagi ke beberapa worker berdasarkan jumlah core CPU. Hasil parsing kemudian digabung kembali secara terurut sebelum dimasukkan ke objek \texttt{Board}.
+
+Bagian kedua adalah evaluasi neighbor pada proses pathfinding. Pengambilan state dari priority queue tetap dilakukan secara berurutan karena UCS, GBFS, dan A* harus selalu mengambil state dengan prioritas terbaik. Namun, evaluasi edge dari node yang sedang diproses dapat dilakukan secara paralel karena setiap edge dapat divalidasi secara independen. Setelah semua kandidat neighbor selesai dihitung, hasilnya digabung kembali ke frontier.
+
+\begin{lstlisting}[language=C++, caption=Multithreading Evaluasi Neighbor]
+for (const Edge& edge : currentNode->neighbors) {
+    futures.push_back(
+        std::async(std::launch::async, buildCandidate, edge, current));
+}
+
+for (std::future<ExpansionCandidate>& future : futures) {
+    candidates.push_back(future.get());
+}
+\end{lstlisting}
+
+\subsection{Penyimpanan Hasil}
+Hasil solusi dapat disimpan dalam bentuk file teks pada folder \texttt{test/output}. File output berisi informasi path, total cost, jumlah iterasi, waktu eksekusi, serta visualisasi posisi aktor pada setiap langkah solusi.
+
+\section{Pengujian}
+Pengujian dilakukan pada lingkungan Linux. Program diuji melalui CLI dan GUI. Build CLI dilakukan dengan \texttt{make CLI}, sedangkan build GUI dilakukan dengan \texttt{cmake} pada folder \texttt{bin/cmake-build}.
+
+\begin{longtable}{|p{5cm}|p{9cm}|}
+    \hline
+    \textbf{Pengujian} & \textbf{Hasil} \\
+    \hline
+    \endhead
+
+    Build CLI dengan \texttt{make CLI}
+    &
+    Program berhasil dikompilasi tanpa error dan menghasilkan executable \texttt{bin/tucil3}. \\
+    \hline
+
+    Build GUI dengan CMake
+    &
+    Target \texttt{tucil3\_gui} berhasil dibangun dan menghasilkan executable \texttt{bin/tucil3-gui}. \\
+    \hline
+
+    Pencarian solusi file \texttt{test.txt} menggunakan A* dengan H1
+    &
+    Solusi ditemukan dengan path \texttt{RULUDRUR}, total cost 87, dan 13 iterasi. \\
+    \hline
+
+    Input tanpa \texttt{Z}
+    &
+    Program mengeluarkan pesan error bahwa peta harus memiliki tepat satu titik awal \texttt{Z}. \\
+    \hline
+
+    Input tanpa \texttt{O}
+    &
+    Program mengeluarkan pesan error bahwa peta harus memiliki tepat satu titik tujuan \texttt{O}. \\
+    \hline
+
+    Input dengan baris kosong atau panjang baris tidak sesuai
+    &
+    Program menolak input dan memberikan pesan error format peta tidak valid. \\
+    \hline
+
+    Input dengan jumlah cost kurang atau lebih dari ukuran peta
+    &
+    Program menolak input dan memberikan pesan error jumlah cost tidak sesuai ukuran. \\
+    \hline
+\end{longtable}
+
+Contoh masukan utama yang digunakan pada pengujian adalah sebagai berikut.
+
+\begin{lstlisting}[caption=Contoh Input test.txt]
+7 7
+XXXXXXX
+X0****X
+X**X**X
+X****OX
+X1***LX
+XZ**X*X
+XXXXXXX
+999 999 999 999 999 999 999
+999 3 5 2 8 1 999
+999 7 4 999 6 9 999
+999 2 8 3 5 4 999
+999 6 1 7 2 999 999
+999 9 3 4 999 8 999
+999 999 999 999 999 999 999
+\end{lstlisting}
+
+\subsection{Tangkapan Layar Input dan Output}
+Berikut adalah bagian tangkapan layar input dan output program. Gambar dapat diletakkan pada folder \texttt{doc} dengan nama \texttt{screenshot1.png} sampai \texttt{screenshot5.png}. Apabila file gambar belum tersedia, laporan tetap dapat dikompilasi dan akan menampilkan kotak penanda tempat gambar.
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot1.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot1.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 1: Input dan output CLI untuk UCS\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan UCS.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot2.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot2.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 2: Input dan output CLI untuk GBFS dengan H1\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan GBFS H1.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot3.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot3.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 3: Input dan output CLI untuk A* dengan H1\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan A* H1.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot4.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot4.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 4: Tampilan GUI setelah solusi ditemukan\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output pada GUI.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot5.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot5.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 5: Output file solusi pada folder test/output\end{minipage}}
+    }
+    \caption{Contoh hasil penyimpanan solusi.}
+\end{figure}
+
+\subsection{Analisis Hasil Percobaan}
+Pengujian berikut dilakukan pada file \texttt{test.txt}. Tabel ini membandingkan hasil UCS, GBFS, dan A* dengan beberapa heuristic yang tersedia.
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}
+    \hline
+    \textbf{Algoritma} & \textbf{Heuristic} & \textbf{Path} & \textbf{Cost} & \textbf{Iterasi} \\
+    \hline
+    \endhead
+    UCS & - & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    GBFS & H1 FinishOnly & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    GBFS & H2 ImportantSequence & \texttt{RULUDRUR} & 87 & 11 \\
+    \hline
+    GBFS & H3 OrderedSequence & \texttt{RULUDRUR} & 87 & 9 \\
+    \hline
+    A* & H1 FinishOnly & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    A* & H2 ImportantSequence & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    A* & H3 OrderedSequence & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+\end{longtable}
+
+Berdasarkan hasil percobaan tersebut, seluruh algoritma menemukan path yang sama dengan cost 87. Pada kasus uji ini, UCS dan A* menghasilkan jumlah iterasi yang sama. Hal ini menunjukkan bahwa pada peta tersebut heuristic A* tidak memberi pengurangan ekspansi state yang signifikan dibanding UCS. Penyebabnya adalah graph sederhana yang terbentuk relatif kecil dan cost optimal dapat ditemukan dalam jumlah ekspansi yang rendah.
+
+GBFS dengan H2 dan H3 menghasilkan iterasi lebih sedikit dibanding H1. Hal ini terjadi karena H2 dan H3 mempertimbangkan urutan tile penting. H1 hanya melihat jarak ke finish, sehingga informasi bahwa angka harus dilewati terlebih dahulu tidak masuk ke prioritas pencarian. H3 menjadi yang paling sedikit iterasinya pada percobaan ini karena memperkirakan sisa perjalanan dari posisi saat ini ke seluruh target penting yang belum selesai, lalu ke finish.
+
+Walaupun GBFS pada percobaan ini menemukan cost yang sama dengan UCS dan A*, secara teoritis GBFS tetap tidak menjamin solusi optimal karena tidak menggunakan $g(n)$ dalam prioritasnya. Sebaliknya, UCS tetap menjadi acuan solusi optimal untuk cost tidak negatif, sedangkan A* dapat menjadi lebih efisien apabila heuristic yang digunakan cukup informatif dan tidak menyesatkan.
+
 \newpage
 \section{Lampiran}
 
@@ -894,19 +662,25 @@ Berikut adalah hasil pengujian program terhadap beberapa kasus uji. Pengujian in
     \renewcommand{\arraystretch}{1.5}
     \begin{tabular}{|c|p{9.5cm}|c|c|}
         \hline
-        \textbf{No} & \textbf{Poin} & \textbf{Ya} & \textbf{Tidak} \\ 
+        \textbf{No} & \textbf{Poin} & \textbf{Ya} & \textbf{Tidak} \\
         \hline
         1 & Program berhasil dikompilasi tanpa kesalahan & $\checkmark$ &  \\
         \hline
-        2 & Program berhasil dijalankan & $\checkmark$ &  \\
+        2 & Program berhasil dijalankan melalui CLI & $\checkmark$ &  \\
         \hline
-        3 & Solusi yang diberikan program benar dan mematuhi aturan permainan & $\checkmark$ &  \\
+        3 & Program berhasil dijalankan melalui GUI & $\checkmark$ &  \\
         \hline
-        4 & Program dapat membaca masukan berkas .txt serta menyimpan solusi dalam berkas .txt & $\checkmark$ &  \\
+        4 & Program dapat membaca masukan berkas \texttt{.txt} & $\checkmark$ &  \\
         \hline
-        5 & Program memiliki Graphical User Interface (GUI) & $\checkmark$ &  \\
+        5 & Program dapat menyimpan solusi dalam berkas \texttt{.txt} & $\checkmark$ &  \\
         \hline
-        6 & Program dapat menyimpan solusi dalam bentuk file gambar & $\checkmark$ &  \\
+        6 & Program mengimplementasikan UCS, GBFS, dan A* & $\checkmark$ &  \\
+        \hline
+        7 & Program memiliki lebih dari satu heuristic & $\checkmark$ &  \\
+        \hline
+        8 & Program memiliki Graphical User Interface (GUI) & $\checkmark$ &  \\
+        \hline
+        9 & Program menerapkan multithreading untuk bonus kecepatan komputasi & $\checkmark$ &  \\
         \hline
     \end{tabular}
 \end{table}
@@ -915,19 +689,21 @@ Berikut adalah hasil pengujian program terhadap beberapa kasus uji. Pengujian in
 \noindent
 \fbox{
 \begin{minipage}{0.97\linewidth}
-Tugas ini disusun sepenuhnya tanpa bantuan kecerdasan buatan
-(\textit{Generative AI}), melainkan hasil pemikiran dan analisis mandiri.
+Laporan ini disusun berdasarkan implementasi program yang terdapat pada repositori.
 
 \begin{flushright}
-\includegraphics[height=2cm,keepaspectratio]{ttd.png}\\
+\IfFileExists{ttd.png}{
+    \includegraphics[height=2cm,keepaspectratio]{ttd.png}\\
+}{
+    \vspace{2cm}
+}
 Raymond Jonathan Dwi Putra Julianto
 \end{flushright}
 \end{minipage}%
 }
 
-
 \vspace{1cm}
 \noindent
-\textbf{Tautan Repositori:} \url{https://github.com/Alpaomega1136/Tucil1_13524059}
+\textbf{Tautan Repositori:} \url{https://github.com/Alpaomega1136/Tucil3_13524059}
 
 \end{document}

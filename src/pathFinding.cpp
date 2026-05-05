@@ -1,6 +1,7 @@
 #include "pathFinding.hpp"
 
 #include <algorithm>
+#include <future>
 #include <map>
 #include <queue>
 #include <vector>
@@ -38,6 +39,16 @@ struct FrontierCompare {
     bool operator()(const FrontierEntry& left, const FrontierEntry& right) const {
         return left.priority > right.priority;
     }
+};
+
+struct ExpansionCandidate {
+    bool valid = false;
+    int priority = 0;
+    int gCost = 0;
+    int heuristicCost = 0;
+    int neighborId = -1;
+    int nextNumber = 0;
+    char direction = '?';
 };
 
 bool advanceImportantSequence(int currentNext, const std::vector<PassedTile>& passedTiles, int& nextAfter) {
@@ -99,6 +110,30 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
         }
         return gCost + heuristicCost;
     };
+    const auto buildCandidate = [&graph, &priorityFor, algorithm, mode](const Edge& edge, const FrontierEntry& current) {
+        ExpansionCandidate candidate;
+
+        int nextNumberAfter = current.nextNumber;
+        if (!advanceImportantSequence(current.nextNumber, edge.passedImportant, nextNumberAfter)) {
+            return candidate;
+        }
+
+        int newGCost = current.gCost + edge.costEdge;
+        int neighborHeuristic = 0;
+        if (algorithm != Algorithm::UCS) {
+            neighborHeuristic = graph.getHeuristicCost(edge.neighbor, nextNumberAfter, mode);
+        }
+
+        candidate.valid = true;
+        candidate.gCost = newGCost;
+        candidate.heuristicCost = neighborHeuristic;
+        candidate.neighborId = edge.neighborId;
+        candidate.nextNumber = nextNumberAfter;
+        candidate.direction = edge.direction;
+        candidate.priority = priorityFor(candidate.gCost, candidate.heuristicCost);
+
+        return candidate;
+    };
 
     std::vector<HistoryRecord> history;
     std::priority_queue<FrontierEntry,
@@ -151,34 +186,48 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
             break;
         }
 
-        for (const Edge& edge : currentNode->neighbors) {
-            int nextNumberAfter = current.nextNumber;
-            if (!advanceImportantSequence(current.nextNumber, edge.passedImportant, nextNumberAfter)) {
+        std::vector<ExpansionCandidate> candidates;
+        candidates.reserve(currentNode->neighbors.size());
+
+        if (currentNode->neighbors.size() <= 1) {
+            for (const Edge& edge : currentNode->neighbors) {
+                candidates.push_back(buildCandidate(edge, current));
+            }
+        } else {
+            std::vector<std::future<ExpansionCandidate>> futures;
+            futures.reserve(currentNode->neighbors.size());
+
+            for (const Edge& edge : currentNode->neighbors) {
+                futures.push_back(
+                    std::async(std::launch::async, buildCandidate, edge, current));
+            }
+
+            for (std::future<ExpansionCandidate>& future : futures) {
+                candidates.push_back(future.get());
+            }
+        }
+
+        for (const ExpansionCandidate& candidate : candidates) {
+            if (!candidate.valid) {
                 continue;
             }
 
-            int newGCost = current.gCost + edge.costEdge;
-            StateKey neighborKey{edge.neighborId, nextNumberAfter};
+            StateKey neighborKey{candidate.neighborId, candidate.nextNumber};
             auto neighborIt = bestCost.find(neighborKey);
-            if (neighborIt != bestCost.end() && neighborIt->second <= newGCost) {
+            if (neighborIt != bestCost.end() && neighborIt->second <= candidate.gCost) {
                 continue;
             }
-            bestCost[neighborKey] = newGCost;
-
-            int neighborHeuristic = 0;
-            if (algorithm != Algorithm::UCS) {
-                neighborHeuristic = graph.getHeuristicCost(edge.neighbor, nextNumberAfter, mode);
-            }
+            bestCost[neighborKey] = candidate.gCost;
 
             FrontierEntry nextEntry;
-            nextEntry.gCost = newGCost;
-            nextEntry.heuristicCost = neighborHeuristic;
-            nextEntry.nodeId = edge.neighborId;
-            nextEntry.nextNumber = nextNumberAfter;
-            nextEntry.priority = priorityFor(nextEntry.gCost, neighborHeuristic);
+            nextEntry.gCost = candidate.gCost;
+            nextEntry.heuristicCost = candidate.heuristicCost;
+            nextEntry.nodeId = candidate.neighborId;
+            nextEntry.nextNumber = candidate.nextNumber;
+            nextEntry.priority = candidate.priority;
 
             history.push_back(
-                HistoryRecord{edge.neighborId, current.historyIdx, edge.direction});
+                HistoryRecord{candidate.neighborId, current.historyIdx, candidate.direction});
             nextEntry.historyIdx = static_cast<int>(history.size()) - 1;
             frontier.push(nextEntry);
         }

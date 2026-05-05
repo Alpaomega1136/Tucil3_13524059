@@ -3,16 +3,96 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
+#include <future>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
+#include <thread>
 
 namespace {
 bool isValidTileType(char type) {
     return type == '*' || type == 'X' || type == 'L' ||
            type == 'Z' || type == 'O' ||
            (type >= '0' && type <= '9');
+}
+
+struct ParsedMapRow {
+    std::vector<char> types;
+    int startCount = 0;
+    int goalCount = 0;
+    std::vector<bool> foundNumbers = std::vector<bool>(10, false);
+    int maxNumber = -1;
+};
+
+struct ParsedCostRow {
+    std::vector<int> costs;
+};
+
+ParsedMapRow parseMapRow(const std::string& line, int colCount) {
+    if (line.empty()) {
+        throw std::runtime_error("Baris peta tidak boleh kosong.");
+    }
+    if (static_cast<int>(line.size()) != colCount) {
+        throw std::runtime_error("Panjang baris peta tidak sesuai ukuran.");
+    }
+
+    ParsedMapRow parsed;
+    parsed.types.resize(colCount);
+
+    for (int col = 0; col < colCount; ++col) {
+        char type = line[col];
+        if (!isValidTileType(type)) {
+            throw std::runtime_error("Karakter peta tidak valid.");
+        }
+
+        if (type == 'Z') {
+            ++parsed.startCount;
+        } else if (type == 'O') {
+            ++parsed.goalCount;
+        } else if (type >= '0' && type <= '9') {
+            int number = type - '0';
+            parsed.foundNumbers[number] = true;
+            parsed.maxNumber = std::max(parsed.maxNumber, number);
+        }
+
+        parsed.types[col] = type;
+    }
+
+    return parsed;
+}
+
+ParsedCostRow parseCostRow(const std::string& line, int colCount) {
+    if (line.empty()) {
+        throw std::runtime_error("Baris cost tidak boleh kosong.");
+    }
+
+    ParsedCostRow parsed;
+    parsed.costs.resize(colCount);
+    std::istringstream costLine(line);
+
+    for (int col = 0; col < colCount; ++col) {
+        int cost = 0;
+        if (!(costLine >> cost) || cost < 0) {
+            throw std::runtime_error("Cost peta tidak valid.");
+        }
+        parsed.costs[col] = cost;
+    }
+
+    std::string extraCost;
+    if (costLine >> extraCost) {
+        throw std::runtime_error("Jumlah cost pada baris tidak sesuai ukuran.");
+    }
+
+    return parsed;
+}
+
+int getWorkerCount(int itemCount) {
+    unsigned int hardwareThreads = std::thread::hardware_concurrency();
+    if (hardwareThreads == 0) {
+        hardwareThreads = 2;
+    }
+    return std::max(1, std::min(itemCount, static_cast<int>(hardwareThreads)));
 }
 }
 
@@ -217,65 +297,57 @@ Board readBoardFromFile(const std::string& filePath) {
     int goalCount = 0;
     std::vector<bool> foundNumbers(10, false);
     int maxNumber = -1;
+    std::vector<std::string> mapLines(rowCount);
+    std::vector<std::string> costLines(rowCount);
 
     for (int row = 0; row < rowCount; ++row) {
-        std::string line;
-        if (!std::getline(input, line)) {
+        if (!std::getline(input, mapLines[row])) {
             throw std::runtime_error("Jumlah baris peta kurang dari ukuran.");
-        }
-        if (line.empty()) {
-            throw std::runtime_error("Baris peta tidak boleh kosong.");
-        }
-        if (static_cast<int>(line.size()) != colCount) {
-            throw std::runtime_error("Panjang baris peta tidak sesuai ukuran.");
-        }
-
-        for (int col = 0; col < colCount; ++col) {
-            char type = line[col];
-            if (!isValidTileType(type)) {
-                throw std::runtime_error("Karakter peta tidak valid.");
-            }
-
-            if (type == 'Z') {
-                ++startCount;
-            } else if (type == 'O') {
-                ++goalCount;
-            } else if (type >= '0' && type <= '9') {
-                int number = type - '0';
-                foundNumbers[number] = true;
-                maxNumber = std::max(maxNumber, number);
-            }
-            board.setType(row, col, type);
         }
     }
 
     for (int row = 0; row < rowCount; ++row) {
-        std::string line;
-        if (!std::getline(input, line)) {
+        if (!std::getline(input, costLines[row])) {
             throw std::runtime_error("Jumlah baris cost kurang dari ukuran.");
-        }
-        if (line.empty()) {
-            throw std::runtime_error("Baris cost tidak boleh kosong.");
-        }
-
-        std::istringstream costLine(line);
-        for (int col = 0; col < colCount; ++col) {
-            int cost = 0;
-            if (!(costLine >> cost) || cost < 0) {
-                throw std::runtime_error("Cost peta tidak valid.");
-            }
-            board.setCost(row, col, cost);
-        }
-
-        std::string extraCost;
-        if (costLine >> extraCost) {
-            throw std::runtime_error("Jumlah cost pada baris tidak sesuai ukuran.");
         }
     }
 
     std::string extraInput;
     if (input >> extraInput) {
         throw std::runtime_error("Input memiliki data tambahan setelah matriks cost.");
+    }
+
+    std::vector<ParsedMapRow> parsedMapRows(rowCount);
+    std::vector<std::future<void>> mapFutures;
+    int mapWorkerCount = getWorkerCount(rowCount);
+    mapFutures.reserve(mapWorkerCount);
+
+    for (int worker = 0; worker < mapWorkerCount; ++worker) {
+        int begin = worker * rowCount / mapWorkerCount;
+        int end = (worker + 1) * rowCount / mapWorkerCount;
+        mapFutures.push_back(std::async(std::launch::async, [&mapLines, &parsedMapRows, colCount, begin, end]() {
+            for (int row = begin; row < end; ++row) {
+                parsedMapRows[row] = parseMapRow(mapLines[row], colCount);
+            }
+        }));
+    }
+
+    for (std::future<void>& future : mapFutures) {
+        future.get();
+    }
+
+    for (int row = 0; row < rowCount; ++row) {
+        const ParsedMapRow& parsed = parsedMapRows[row];
+        startCount += parsed.startCount;
+        goalCount += parsed.goalCount;
+        maxNumber = std::max(maxNumber, parsed.maxNumber);
+        for (int number = 0; number < 10; ++number) {
+            foundNumbers[number] = foundNumbers[number] || parsed.foundNumbers[number];
+        }
+
+        for (int col = 0; col < colCount; ++col) {
+            board.setType(row, col, parsed.types[col]);
+        }
     }
 
     if (startCount != 1) {
@@ -291,6 +363,32 @@ Board readBoardFromFile(const std::string& filePath) {
         }
     }
     board.setImportantCount(maxNumber + 1);
+
+    std::vector<ParsedCostRow> parsedCostRows(rowCount);
+    std::vector<std::future<void>> costFutures;
+    int costWorkerCount = getWorkerCount(rowCount);
+    costFutures.reserve(costWorkerCount);
+
+    for (int worker = 0; worker < costWorkerCount; ++worker) {
+        int begin = worker * rowCount / costWorkerCount;
+        int end = (worker + 1) * rowCount / costWorkerCount;
+        costFutures.push_back(std::async(std::launch::async, [&costLines, &parsedCostRows, colCount, begin, end]() {
+            for (int row = begin; row < end; ++row) {
+                parsedCostRows[row] = parseCostRow(costLines[row], colCount);
+            }
+        }));
+    }
+
+    for (std::future<void>& future : costFutures) {
+        future.get();
+    }
+
+    for (int row = 0; row < rowCount; ++row) {
+        const ParsedCostRow& parsed = parsedCostRows[row];
+        for (int col = 0; col < colCount; ++col) {
+            board.setCost(row, col, parsed.costs[col]);
+        }
+    }
 
     return board;
 }

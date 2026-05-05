@@ -1,5 +1,5 @@
 CXX := g++
-CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -O2 -Iinclude
+CXXFLAGS := -std=c++17 -Wall -Wextra -Wpedantic -O2 -Iinclude -pthread
 
 TARGET := bin/tucil3
 BUILD_DIR := bin
