@@ -1,3 +1,5 @@
+Algoritma Pathfinding : UCS
+Tipe Heuristik : None
 Solusi Yang Ditemukan : LURDRDLULUDRDLUDRULDRURDLDRUDLULDRDLDRULURDL
 Cost dari Solusi : 2452
 Initial
@@ -855,5 +857,5 @@ X2**********7***********6X
 X******X*****************X
 X**********X*************X
 XXXXXXXXXXXXXXXXXXXXXXXXXX
->> Waktu eksekusi: 0.176 ms
+>> Waktu eksekusi: 0.124 ms
 >> Banyak iterasi yang dilakukan: 217 iterasi

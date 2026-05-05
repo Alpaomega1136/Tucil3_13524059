@@ -36,6 +36,8 @@ Semua algoritma tetap memvalidasi urutan angka. Perbedaan `H1`, `H2`, dan `H3` h
 - C++17
 - `g++`
 - `make`
+- `cmake` untuk build otomatis dengan dependency GUI
+- `raylib` untuk build versi GUI. Jika memakai CMake dan raylib belum tersedia, CMake akan mencoba mengunduh raylib otomatis.
 
 ## Struktur Direktori
 
@@ -54,17 +56,21 @@ Semua algoritma tetap memvalidasi urutan angka. Perbedaan `H1`, `H2`, dan `H3` h
 
 ## Build
 
-Jalankan:
+### Makefile
 
 ```bash
 make
 ```
 
-Executable akan dibuat di:
+Makefile digunakan untuk membangun versi CLI.
 
-```text
-bin/tucil3
+```bash
+make CLI
 ```
+
+Hasil build:
+
+- CLI: `bin/tucil3`
 
 Untuk membersihkan hasil build:
 
@@ -78,9 +84,36 @@ Untuk build ulang dari awal:
 make rebuild
 ```
 
-## Cara Menjalankan
+### CMake
 
-Program dapat dijalankan dengan argumen file input:
+CMake disediakan agar dependency GUI `raylib` bisa dicari otomatis. Jika raylib belum terpasang, CMake akan mencoba mengunduh raylib melalui `FetchContent`.
+
+```bash
+cmake -S . -B bin/cmake-build
+cmake --build bin/cmake-build --target tucil3_gui
+```
+
+Folder konfigurasi dan hasil build internal CMake berada di:
+
+```text
+bin/cmake-build
+```
+
+Executable GUI tetap dibuat di:
+
+```text
+bin/tucil3-gui
+```
+
+## Cara Menggunakan CLI
+
+Build versi CLI:
+
+```bash
+make CLI
+```
+
+Jalankan dengan argumen file input:
 
 ```bash
 ./bin/tucil3 test.txt
@@ -92,15 +125,35 @@ Jika nama file tidak memuat folder, program akan mencari file tersebut di:
 test/input/test.txt
 ```
 
-Resolusi path dilakukan dari root repository `Tucil3_13524059`, sehingga path seperti `test.txt` atau `test/input/test.txt` tetap mengarah ke file di dalam project.
-
 Program juga dapat dijalankan tanpa argumen:
 
 ```bash
 ./bin/tucil3
 ```
 
-Lalu program akan meminta path file input melalui terminal.
+
+## Cara Menggunakan GUI
+
+Build versi GUI:
+
+```bash
+cmake -S . -B bin/cmake-build
+cmake --build bin/cmake-build --target tucil3_gui
+```
+
+Jika raylib belum tersedia secara manual, CMake akan mencoba mengunduh raylib otomatis.
+
+Jalankan GUI dengan target CMake:
+
+```bash
+cmake --build bin/cmake-build --target run
+```
+
+Atau jalankan executable langsung:
+
+```bash
+./bin/tucil3-gui
+```
 
 ## Format Input
 
@@ -148,59 +201,3 @@ Contoh input tersedia di:
 ```text
 test/input/test.txt
 ```
-
-## Format Output Program
-
-Program menampilkan:
-
-- Solusi gerakan, misalnya `RULUDRUR`.
-- Total cost solusi.
-- Visualisasi papan dari posisi awal sampai setiap step solusi.
-- Waktu eksekusi pencarian dalam milisecond.
-- Banyak iterasi atau konfigurasi yang ditinjau.
-- Opsi playback step tertentu.
-- Opsi menyimpan solusi ke file `.txt`.
-
-Contoh alur CLI:
-
-```text
->> Masukan file input :
-test.txt
->> Algoritma apa yang anda pilih? (UCS/GBFS/A*)
-A*
->> Heuristic apa yang anda pilih? (H1/H2/H3)
-H1
-Solusi Yang Ditemukan : RULUDRUR
-Cost dari Solusi : 87
-Initial
-...
->> Waktu eksekusi: 0 ms
->> Banyak iterasi yang dilakukan: 13 iterasi
->> Apakah Anda ingin melakukan playback? (Ya/Tidak) :
-Tidak
->> Apakah Anda ingin menyimpan solusi? (Ya/Tidak) :
-Ya
->> Solusi disimpan pada test/output/test_solution.txt
-```
-
-Jika solusi disimpan, file output akan dibuat di:
-
-```text
-test/output/<nama_input>_solution.txt
-```
-
-Contoh:
-
-```text
-test/input/test.txt -> test/output/test_solution.txt
-```
-
-## Catatan Penggunaan
-
-Input bersifat case sensitive.
-
-- Algoritma harus ditulis `UCS`, `GBFS`, atau `A*`.
-- Heuristik harus ditulis `H1`, `H2`, atau `H3`.
-- Jawaban ya untuk playback dan simpan solusi harus ditulis `Ya`.
-
-File hasil output `.txt` di `test/output/` tidak dilacak oleh git agar hasil percobaan lokal tidak mengubah status repository.

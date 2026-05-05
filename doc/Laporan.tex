@@ -1,0 +1,709 @@
+\documentclass[a4paper,11pt]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{float}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{hyperref}
+\usepackage{amssymb}
+\graphicspath{{doc/}{./}}
+
+% Definisi Warna
+\definecolor{codegreen}{rgb}{0,0.6,0}
+\definecolor{codegray}{rgb}{0.5,0.5,0.5}
+\definecolor{codepurple}{rgb}{0.58,0,0.82}
+\definecolor{backcolour}{rgb}{0.95,0.95,0.92}
+
+% Definisi Style Listing
+\lstdefinestyle{mystyle}{
+    backgroundcolor=\color{backcolour},
+    commentstyle=\color{codegreen},
+    keywordstyle=\color{blue}\bfseries,
+    numberstyle=\tiny\color{codegray},
+    stringstyle=\color{codepurple},
+    basicstyle=\ttfamily\footnotesize,
+    breakatwhitespace=false,
+    breaklines=true,
+    captionpos=b,
+    keepspaces=true,
+    numbers=left,
+    numbersep=5pt,
+    showspaces=false,
+    showstringspaces=false,
+    showtabs=false,
+    tabsize=2
+}
+
+\lstset{style=mystyle}
+
+\lstdefinelanguage{Pseudocode}{
+    keywords={FUNCTION, ALGORITMA, KAMUS, LOKAL, IF, THEN, ELSE, RETURN, FOR, TO, DO, WHILE, TYPE, LIST, of, AND, OR, NOT, input, output, true, false, null, push, pop},
+    sensitive=true,
+    morecomment=[s]{\{}{\}},
+    morestring=[b]",
+}
+
+\begin{document}
+
+% ===== HALAMAN JUDUL (COVER) =====
+\begin{titlepage}
+\centering
+\vspace*{1cm}
+
+% ===== Header =====
+{\fontsize{14pt}{16pt}\selectfont\textbf{IF2211 - K01}}\\[1cm]
+
+{\fontsize{16pt}{18pt}\selectfont\textbf{TUGAS KECIL 3 STRATEGI ALGORITMA}}\\[0.5cm]
+
+{\fontsize{12pt}{14pt}\selectfont
+Penyelesaian Permainan Ice Sliding Puzzle dengan Menggunakan Algoritma Pathfinding
+}\\[2cm]
+
+% ===== Logo =====
+\IfFileExists{cover.png}{
+    \includegraphics[width=0.5\textwidth]{cover.png}\\[2cm]
+}{
+    \vspace{3cm}
+}
+
+% ===== Penyusun =====
+{\fontsize{12pt}{14pt}\selectfont Disusun oleh:}\\[0.5cm]
+
+{\fontsize{12pt}{14pt}\selectfont
+\begin{tabular}{c c}
+Raymond Jonathan Dwi Putra Julianto & 13524059
+\end{tabular}
+}
+
+\vfill
+
+% ===== Footer =====
+{\fontsize{14pt}{16pt}\selectfont\textbf{SEKOLAH TEKNIK ELEKTRO DAN INFORMATIKA}}\\[0.5cm]
+{\fontsize{14pt}{16pt}\selectfont\textbf{INSTITUT TEKNOLOGI BANDUNG}}\\[0.5cm]
+
+{\fontsize{14pt}{16pt}\selectfont 2026}
+
+\vspace*{1cm}
+\end{titlepage}
+
+\setcounter{page}{1}
+
+\section{Permasalahan}
+Ice Sliding Puzzle adalah permainan pencarian jalur pada papan dua dimensi. Pemain atau aktor berada pada satu titik awal dan harus mencapai titik tujuan. Berbeda dengan pergerakan biasa, aktor tidak bergerak satu petak lalu berhenti. Ketika aktor memilih arah atas, kanan, bawah, atau kiri, aktor akan terus meluncur pada arah tersebut sampai berhenti tepat sebelum rintangan.
+
+Pada papan permainan terdapat beberapa jenis tile. Tile \texttt{Z} menyatakan posisi awal aktor, tile \texttt{O} menyatakan posisi tujuan, tile \texttt{X} menyatakan rintangan, tile \texttt{L} menyatakan lava, tile \texttt{*} menyatakan jalan biasa, dan tile angka \texttt{0} sampai \texttt{9} menyatakan tile penting. Tile angka harus dilewati sesuai urutan dari angka terkecil. Apabila aktor melewati angka yang lebih besar sebelum waktunya, jalur tersebut dianggap tidak valid. Apabila aktor melewati lava atau bergerak keluar papan tanpa dapat berhenti, jalur tersebut juga dianggap tidak valid.
+
+Masukan program berupa file teks yang berisi ukuran papan, peta permainan, dan matriks cost setiap tile. Tujuan program adalah mencari jalur dari \texttt{Z} menuju \texttt{O} dengan memperhatikan aturan sliding, urutan tile penting, serta total cost. Program mendukung algoritma Uniform Cost Search (UCS), Greedy Best First Search (GBFS), dan A*.
+
+\section{Pendekatan Solusi}
+Permasalahan ini diselesaikan dengan pendekatan \textit{graph search}. Papan permainan terlebih dahulu dibaca sebagai objek \texttt{Board}. Setelah itu, program membentuk graph sederhana. Node pada graph bukan semua tile di papan, melainkan hanya posisi yang dapat menjadi tempat aktor berhenti setelah melakukan sliding. Dengan demikian, satu edge pada graph mewakili satu gerakan sliding lengkap dari satu posisi berhenti ke posisi berhenti lain.
+
+Setiap edge menyimpan arah gerak, node tujuan, cost total tile yang dilalui, dan daftar tile penting yang dilewati selama sliding. Pendekatan ini penting karena tile angka atau finish dapat berada di tengah lintasan sliding. Apabila tile penting berada di tengah lintasan tetapi aktor tidak berhenti di sana, tile tersebut tidak menjadi node tujuan, tetapi tetap dicatat sebagai tile yang dilewati pada edge. Informasi ini kemudian digunakan saat pathfinding untuk memvalidasi urutan angka.
+
+Sebagai contoh, misalkan terdapat potongan papan sebagai berikut. Simbol \texttt{Z} adalah posisi awal, \texttt{O} adalah finish, \texttt{0} adalah tile penting, dan \texttt{X} adalah rintangan.
+
+\begin{lstlisting}[caption=Contoh Board Sederhana]
+XXXXXXX
+X0***OX
+X**X**X
+X****XX
+XZ***XX
+XXXXXXX
+\end{lstlisting}
+
+Pada representasi board biasa, setiap karakter pada matriks adalah tile. Namun pada graph sederhana, tidak semua tile menjadi node. Node hanya dibuat pada posisi yang dapat menjadi tempat aktor berhenti. Dari posisi awal \texttt{Z}, aktor dapat melakukan sliding ke atas sampai berhenti tepat sebelum rintangan atau melakukan sliding ke kanan sampai berhenti sebelum rintangan. Tile yang hanya dilewati di tengah lintasan tidak otomatis menjadi node.
+
+Sebagai ilustrasi, beberapa node yang terbentuk dapat direpresentasikan seperti berikut.
+
+\begin{longtable}{|c|c|c|p{6cm}|}
+    \hline
+    \textbf{Node} & \textbf{Posisi} & \textbf{Tile} & \textbf{Alasan Menjadi Node} \\
+    \hline
+    \endhead
+    N0 & Baris 4, Kolom 1 & \texttt{Z} & Posisi awal aktor. \\
+    \hline
+    N1 & Baris 1, Kolom 1 & \texttt{0} & Hasil slide ke atas dari \texttt{Z} dan berhenti sebelum dinding atas. \\
+    \hline
+    N2 & Baris 4, Kolom 4 & \texttt{*} & Hasil slide ke kanan dari \texttt{Z} dan berhenti sebelum rintangan. \\
+    \hline
+    N3 & Baris 1, Kolom 5 & \texttt{O} & Posisi finish yang dapat menjadi posisi berhenti. \\
+    \hline
+\end{longtable}
+
+Dari node-node tersebut, edge menyimpan satu gerakan sliding penuh. Contohnya, apabila dari \texttt{Z} aktor bergerak ke atas, maka edge yang terbentuk adalah \texttt{N0 -> N1} dengan arah \texttt{U}. Apabila dari \texttt{N1} aktor bergerak ke kanan dan melewati beberapa tile kosong sampai berhenti di \texttt{O}, maka edge yang terbentuk adalah \texttt{N1 -> N3} dengan arah \texttt{R}. Jika di tengah edge terdapat angka yang dilewati, angka tersebut disimpan pada \texttt{passedImportant}, bukan dipaksa menjadi node baru kecuali aktor memang berhenti tepat di tile tersebut.
+
+\subsection{Konsep Algoritma}
+Secara umum, proses pencarian solusi dibagi menjadi tiga tahap utama. Tahap pertama adalah membaca dan memvalidasi input. Tahap kedua adalah membangun graph sederhana dari papan. Tahap ketiga adalah menjalankan algoritma pencarian pada graph tersebut.
+
+\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Pembentukan Graph Sederhana, label={lst:buildgraph}]
+FUNCTION BuildGraph(board) -> graph
+ALGORITMA
+    root <- node pada posisi start Z
+    frontier.push(root)
+    processed <- empty set
+
+    WHILE frontier tidak kosong DO
+        current <- frontier.pop()
+        IF current sudah ada di processed THEN
+            continue
+        processed.insert(current)
+
+        FOR setiap arah gerak DO
+            slideResult <- Slide(board, current, arah)
+            IF slideResult tidak valid THEN
+                continue
+
+            nextNode <- node pada posisi berhenti slideResult
+            IF nextNode belum ada THEN
+                tambahkan nextNode ke graph
+                frontier.push(nextNode)
+
+            tambahkan edge current -> nextNode
+            simpan arah, cost, dan passedImportant pada edge
+
+    hitung nilai heuristic setiap node
+    RETURN graph
+\end{lstlisting}
+
+Setelah graph terbentuk, pencarian dilakukan dengan state yang tidak hanya menyimpan posisi node, tetapi juga angka berikutnya yang harus dilewati. Hal ini dibutuhkan karena dua jalur dapat berhenti pada node yang sama tetapi memiliki progres angka yang berbeda.
+
+\begin{lstlisting}[language=Pseudocode, caption=Pseudocode Pathfinding, label={lst:pathfinding}]
+FUNCTION Search(graph, algorithm, heuristicMode) -> solution
+ALGORITMA
+    rootState <- (rootNode, nextNumber = 0, g = 0)
+    frontier.push(rootState)
+    bestCost[rootNode, 0] <- 0
+
+    WHILE frontier tidak kosong DO
+        current <- frontier.pop dengan prioritas terbaik
+
+        IF current berada di O AND semua angka selesai THEN
+            RETURN path dari start ke current
+
+        FOR setiap edge dari current.node DO
+            nextNumber <- current.nextNumber
+            valid <- ApplyPassedImportant(edge.passedImportant, nextNumber)
+            IF NOT valid THEN
+                continue
+
+            newCost <- current.g + edge.cost
+            IF newCost lebih baik dari bestCost[edge.to, nextNumber] THEN
+                hitung priority sesuai UCS, GBFS, atau A*
+                frontier.push(state baru)
+
+    RETURN tidak ada solusi
+\end{lstlisting}
+
+\subsection{Algoritma Pencarian}
+Program menyediakan tiga algoritma pencarian.
+
+\begin{enumerate}
+    \item \textbf{Uniform Cost Search (UCS)} menggunakan total cost aktual dari titik awal sebagai prioritas. Algoritma ini tidak menggunakan heuristic.
+    \item \textbf{Greedy Best First Search (GBFS)} menggunakan nilai heuristic sebagai prioritas. Algoritma ini cenderung cepat menuju target yang terlihat dekat, tetapi tidak selalu menghasilkan cost optimal.
+    \item \textbf{A*} menggunakan penjumlahan cost aktual dan heuristic, yaitu $f(n) = g(n) + h(n)$. Algoritma ini mencoba menyeimbangkan cost yang sudah ditempuh dan estimasi jarak ke target.
+\end{enumerate}
+
+Langkah kerja pathfinding dimulai dengan memasukkan state awal ke priority queue. State awal memiliki node posisi \texttt{Z}, nilai cost $g(n) = 0$, dan \texttt{nextNumber = 0}. Selanjutnya, program mengambil state dengan prioritas terbaik dari priority queue. Untuk UCS, prioritas terbaik berarti cost aktual terkecil. Untuk GBFS, prioritas terbaik berarti heuristic terkecil. Untuk A*, prioritas terbaik berarti nilai $g(n) + h(n)$ terkecil.
+
+Setelah sebuah state diambil, program mengecek apakah state tersebut sudah berada pada finish \texttt{O} dan seluruh angka penting sudah dilewati. Jika sudah, program membentuk kembali path solusi dari catatan parent. Jika belum, program mengevaluasi semua edge keluar dari node tersebut. Setiap edge dicek terlebih dahulu apakah melewati angka yang benar. Jika edge melewati angka yang belum boleh dilewati, edge tersebut dibuang. Jika valid, program menghitung cost baru, membandingkannya dengan cost terbaik untuk state tujuan, lalu memasukkan state baru ke priority queue apabila state tersebut lebih baik dari kunjungan sebelumnya.
+
+\subsection{Heuristic}
+Untuk GBFS dan A*, program menyediakan tiga mode heuristic.
+
+\begin{enumerate}
+    \item \textbf{H1 FinishOnly}: menghitung jarak Manhattan dari node saat ini ke finish \texttt{O}.
+    \item \textbf{H2 ImportantSequence}: menghitung jarak Manhattan dari node saat ini ke angka penting berikutnya. Jika semua angka sudah selesai, jarak dihitung ke finish.
+    \item \textbf{H3 OrderedSequence}: menghitung jumlah estimasi jarak Manhattan dari node saat ini ke semua target yang belum selesai secara berurutan, lalu menuju finish.
+\end{enumerate}
+
+Heuristic yang digunakan merupakan estimasi berdasarkan jarak Manhattan. Karena permainan menggunakan mekanisme sliding dan cost tile dapat berbeda-beda, heuristic ini dipakai sebagai pembantu prioritas pencarian, bukan sebagai simulasi gerakan sebenarnya. Validitas jalur tetap ditentukan oleh proses sliding dan pengecekan aturan pada edge.
+
+\section{Analisis Algoritma}
+\subsection{Definisi \texorpdfstring{$g(n)$}{g(n)} dan \texorpdfstring{$f(n)$}{f(n)}}
+Pada implementasi program, sebuah state pencarian tidak hanya didefinisikan oleh posisi node, tetapi juga oleh angka berikutnya yang harus dilewati. Dengan demikian, state dapat ditulis sebagai pasangan $(nodeId, nextNumber)$. Nilai \textbf{$g(n)$} adalah total cost aktual dari posisi awal \texttt{Z} sampai state $n$. Cost ini dihitung dari penjumlahan cost semua tile yang dilewati pada setiap edge sliding. Jika sebuah edge memiliki cost $c$, maka state baru memiliki nilai:
+
+\[
+g(n') = g(n) + c
+\]
+
+Pada UCS, nilai prioritas pencarian hanya menggunakan $g(n)$. Pada GBFS, prioritas pencarian hanya menggunakan heuristic $h(n)$. Pada A*, nilai \textbf{$f(n)$} didefinisikan sebagai:
+
+\[
+f(n) = g(n) + h(n)
+\]
+
+Nilai $h(n)$ bergantung pada mode heuristic yang dipilih. H1 menghitung jarak ke finish, H2 menghitung jarak ke target penting berikutnya, sedangkan H3 menghitung estimasi jarak ke seluruh target yang tersisa secara berurutan sampai finish.
+
+\subsection{Admissibility Heuristic A*}
+Suatu heuristic disebut \textit{admissible} apabila tidak pernah melebih-lebihkan cost optimal sebenarnya dari sebuah state menuju goal. Pada program ini, heuristic yang digunakan berbasis jarak Manhattan. Untuk peta grid biasa dengan gerakan satu langkah dan cost minimum 1, Manhattan sering dapat digunakan sebagai heuristic admissible. Namun, pada Ice Sliding Puzzle, gerakan yang tersedia adalah sliding sampai berhenti di depan rintangan, bukan bergerak satu tile secara bebas. Selain itu, cost pada tile dapat berbeda-beda dan sebuah slide dapat melewati banyak tile sekaligus.
+
+Karena itu, heuristic H1, H2, dan H3 pada implementasi ini \textbf{tidak selalu dapat dijamin admissible} untuk seluruh kemungkinan peta. Jarak Manhattan dapat menjadi lebih besar atau lebih kecil dibanding cost sliding sebenarnya bergantung pada bentuk rintangan dan nilai cost tile. H3 juga menjumlahkan beberapa jarak Manhattan menuju target berurutan, sehingga dapat menjadi estimasi yang lebih agresif. Dengan demikian, A* pada program ini menggunakan heuristic sebagai panduan pencarian, tetapi optimalitas secara teoritis hanya terjamin apabila heuristic yang digunakan tidak melebihi cost optimal sebenarnya.
+
+\subsection{Perbandingan Teoritis Algoritma}
+Secara teoritis, UCS menjamin solusi dengan cost minimum apabila semua edge memiliki cost tidak negatif. Hal ini sesuai dengan implementasi karena cost input divalidasi agar tidak negatif. Kelemahan UCS adalah jumlah state yang dieksplorasi dapat lebih besar karena UCS tidak memiliki informasi arah menuju goal.
+
+GBFS cenderung lebih cepat apabila heuristic cukup baik karena selalu memilih state yang terlihat paling dekat dengan target. Namun, GBFS tidak memperhitungkan cost yang sudah ditempuh. Akibatnya, GBFS dapat menemukan solusi lebih cepat tetapi tidak menjamin solusi dengan cost minimum.
+
+A* berada di antara UCS dan GBFS karena mempertimbangkan $g(n)$ dan $h(n)$ sekaligus. Jika heuristic admissible dan konsisten, A* dapat menemukan solusi optimal dengan ekspansi state yang lebih sedikit dibanding UCS. Pada implementasi ini, karena heuristic berbasis Manhattan tidak selalu admissible pada permainan sliding, A* tetap berguna sebagai algoritma terarah, tetapi jaminan optimalitasnya bergantung pada karakteristik peta dan heuristic yang dipilih.
+
+\subsection{Analisis Kompleksitas}
+Misalkan $V$ adalah jumlah node pada graph sederhana dan $E$ adalah jumlah edge. Karena setiap node mencoba empat arah sliding, jumlah edge maksimum berada pada orde $O(4V)$ atau $O(V)$ dalam konteks graph hasil simplifikasi. Proses membentuk graph membutuhkan simulasi sliding. Jika panjang maksimum lintasan sliding adalah $L$, maka pembuatan graph memiliki kompleksitas sekitar $O(V \cdot 4L)$.
+
+Untuk pencarian, UCS dan A* menggunakan priority queue. Operasi memasukkan dan mengambil state dari frontier membutuhkan $O(\log S)$, dengan $S$ adalah jumlah state yang disimpan. Karena state juga memuat \texttt{nextNumber}, jumlah state maksimum dapat diperkirakan sebesar $V \cdot (K + 1)$, dengan $K$ adalah jumlah tile angka penting. Dengan demikian, kompleksitas pencarian dapat diperkirakan sebesar:
+
+\[
+O(EK \log(VK))
+\]
+
+GBFS memiliki struktur frontier yang sama, tetapi prioritasnya hanya berdasarkan heuristic. Kompleksitas terburuknya tetap dapat mencapai jumlah state yang sama, walaupun dalam praktik jumlah state yang diekspansi dapat lebih kecil apabila heuristic mengarah ke solusi dengan baik.
+
+\section{Implementasi}
+Program dikembangkan menggunakan bahasa pemrograman \textbf{C++17}. Program terdiri atas versi CLI dan GUI. Versi CLI dibangun menggunakan \texttt{Makefile}, sedangkan versi GUI dibangun menggunakan \texttt{CMake} dan \texttt{raylib}. Struktur utama program dibagi ke dalam beberapa file, yaitu \texttt{Board}, \texttt{Graph}, \texttt{PathFinding}, \texttt{IO}, \texttt{main}, dan \texttt{mainGUI}.
+
+\subsection{Source Program}
+Source program ditulis menggunakan bahasa C++17 dan dibagi ke dalam folder \texttt{include} dan \texttt{src}. Folder \texttt{include} berisi deklarasi struktur data dan class, sedangkan folder \texttt{src} berisi implementasi. Pembagian file source program adalah sebagai berikut.
+
+\begin{longtable}{|p{4cm}|p{10cm}|}
+    \hline
+    \textbf{File} & \textbf{Keterangan} \\
+    \hline
+    \endhead
+    \texttt{include/Board.hpp} dan \texttt{src/Board.cpp} & Menyimpan representasi board, validasi input, cost tile, posisi start/finish, dan simulasi sliding. \\
+    \hline
+    \texttt{include/graph.hpp} dan \texttt{src/graph.cpp} & Menyimpan representasi graph sederhana, node, edge, heuristic per node, dan proses pembentukan graph dari board. \\
+    \hline
+    \texttt{include/pathFinding.hpp} dan \texttt{src/pathFinding.cpp} & Menyimpan implementasi UCS, GBFS, dan A* serta validasi urutan angka saat edge dilewati. \\
+    \hline
+    \texttt{include/IO.hpp} dan \texttt{src/IO.cpp} & Menyimpan fungsi input/output bersama untuk CLI dan GUI, termasuk path input, path output, dan penyimpanan solusi. \\
+    \hline
+    \texttt{src/main.cpp} & Entry point CLI untuk menerima input pengguna, menjalankan algoritma, dan menampilkan hasil. \\
+    \hline
+    \texttt{src/mainGUI.cpp} & Entry point GUI berbasis raylib untuk input file, pemilihan algoritma, visualisasi board, playback path, dan penyimpanan solusi. \\
+    \hline
+\end{longtable}
+
+Potongan source utama yang menjadi inti pemilihan algoritma berada pada fungsi pencarian berikut.
+
+\begin{lstlisting}[language=C++, caption=Penentuan Prioritas Algoritma]
+const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
+    if (algorithm == Algorithm::UCS) {
+        return gCost;
+    }
+    if (algorithm == Algorithm::GBFS) {
+        return heuristicCost;
+    }
+    return gCost + heuristicCost;
+};
+\end{lstlisting}
+
+\subsection{Struktur Data}
+Struktur data utama program berada pada \texttt{Board.hpp} dan \texttt{graph.hpp}. Struktur \texttt{Tile} menyimpan informasi posisi, cost, dan tipe tile. Struktur \texttt{Position} menyimpan koordinat baris dan kolom. Struktur \texttt{SlideResult} menyimpan hasil satu gerakan sliding.
+
+\begin{lstlisting}[language=C++, caption=Struktur Data Board]
+struct Tile {
+    int x = 0;
+    int y = 0;
+    int cost = 0;
+    char type = '*';
+};
+
+struct Position {
+    int row = 0;
+    int col = 0;
+};
+
+struct PassedTile {
+    int row = 0;
+    int col = 0;
+    char type = '*';
+};
+
+struct SlideResult {
+    bool valid = false;
+    int stopRow = 0;
+    int stopCol = 0;
+    int cost = 0;
+    char direction = '?';
+    std::vector<PassedTile> passedImportant;
+};
+\end{lstlisting}
+
+Graph dibentuk menggunakan pointer antar node. Setiap \texttt{GraphNode} menyimpan daftar \texttt{Edge}. Setiap edge mengarah langsung ke node tetangga, sehingga pathfinding dapat mengakses node tujuan tanpa perlu mencari ulang berdasarkan id.
+
+\begin{lstlisting}[language=C++, caption=Struktur Data Graph]
+struct Edge {
+    GraphNode* neighbor = nullptr;
+    int neighborId = -1;
+    int costEdge = 0;
+    int costPrediction = 0;
+    char direction = '?';
+    bool canStopAtNeighbor = true;
+    std::vector<PassedTile> passedImportant;
+};
+
+struct GraphNode {
+    int nodeId = -1;
+    int row = 0;
+    int col = 0;
+    char type = '*';
+    int finishPredictionCost = 0;
+    std::vector<PredictionCost> predictionCosts;
+    std::vector<Edge> neighbors;
+};
+\end{lstlisting}
+
+\subsection{Pembacaan Input}
+Pembacaan input dilakukan oleh fungsi \texttt{readBoardFromFile}. Fungsi ini membaca ukuran papan, baris peta, dan matriks cost. Program juga melakukan validasi agar input sesuai format. Beberapa kondisi yang dianggap salah adalah tidak adanya start \texttt{Z}, tidak adanya finish \texttt{O}, jumlah \texttt{Z} atau \texttt{O} lebih dari satu, baris kosong, panjang baris tidak sesuai, cost kurang atau lebih, serta adanya data tambahan setelah matriks cost.
+
+\begin{lstlisting}[language=C++, caption=Validasi Input Board]
+if (startCount != 1) {
+    throw std::runtime_error("Peta harus memiliki tepat satu titik awal Z.");
+}
+if (goalCount != 1) {
+    throw std::runtime_error("Peta harus memiliki tepat satu titik tujuan O.");
+}
+
+for (int number = 0; number <= maxNumber; ++number) {
+    if (!foundNumbers[number]) {
+        throw std::runtime_error("Angka pada peta harus berurutan mulai dari 0.");
+    }
+}
+\end{lstlisting}
+
+Input file dapat dipanggil langsung dari path penuh, path relatif, atau nama file saja. Apabila pengguna hanya memasukkan nama file seperti \texttt{test.txt}, program akan mencarinya pada folder \texttt{test/input/test.txt}. Pengaturan ini dibuat pada modul \texttt{IO}.
+
+\subsection{Simulasi Sliding}
+Gerakan aktor disimulasikan oleh fungsi \texttt{slide}. Fungsi ini menerima posisi awal, delta arah, dan karakter arah. Selama bergerak, fungsi akan menjumlahkan cost tile yang dilewati dan menyimpan angka atau finish yang dilewati ke dalam \texttt{passedImportant}. Jika gerakan keluar papan, melewati lava, atau langsung menabrak rintangan tanpa bergerak, hasil sliding dianggap tidak valid.
+
+\begin{lstlisting}[language=C++, caption=Inti Simulasi Sliding]
+while (true) {
+    int nextRow = currentRow + deltaRow;
+    int nextCol = currentCol + deltaCol;
+
+    if (!isInside(nextRow, nextCol)) {
+        return SlideResult{};
+    }
+
+    if (isWall(nextRow, nextCol)) {
+        if (!hasMoved) {
+            return SlideResult{};
+        }
+
+        result.valid = true;
+        result.stopRow = currentRow;
+        result.stopCol = currentCol;
+        return result;
+    }
+
+    if (isLava(nextRow, nextCol)) {
+        return SlideResult{};
+    }
+}
+\end{lstlisting}
+
+\subsection{Pembuatan Graph}
+Graph dibuat dari papan dengan memulai dari posisi \texttt{Z}. Program melakukan BFS terhadap node yang dapat menjadi posisi berhenti. Untuk setiap node, program mencoba empat arah sliding. Jika hasil sliding valid, program membuat atau mengambil node tujuan, lalu menambahkan edge dari node saat ini ke node tujuan.
+
+\begin{lstlisting}[language=C++, caption=Pembentukan Edge Graph]
+for (int i = 0; i < 4; ++i) {
+    SlideResult result = board.slide(currentNode->row, currentNode->col,
+                                     DELTA_ROW[i], DELTA_COL[i], DIRECTIONS[i]);
+    if (!result.valid) {
+        continue;
+    }
+
+    GraphNode* nextNode = getOrAddNode(result.stopRow, result.stopCol,
+                                       board.getType(result.stopRow, result.stopCol));
+
+    addNeighbor(currentNode, nextNode, result.cost,
+                board.getHeuristicCost(result.stopRow, result.stopCol),
+                result.direction, result.passedImportant);
+}
+\end{lstlisting}
+
+\subsection{Pencarian Solusi}
+Pencarian solusi dilakukan pada kelas \texttt{PathFinding}. Algoritma UCS, GBFS, dan A* memakai fungsi internal yang sama, yaitu \texttt{search}. Perbedaannya berada pada perhitungan prioritas.
+
+\begin{lstlisting}[language=C++, caption=Prioritas Pencarian]
+const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
+    if (algorithm == Algorithm::UCS) {
+        return gCost;
+    }
+    if (algorithm == Algorithm::GBFS) {
+        return heuristicCost;
+    }
+    return gCost + heuristicCost;
+};
+\end{lstlisting}
+
+Sebelum state baru dimasukkan ke frontier, edge yang dilewati akan divalidasi terhadap urutan angka. Jika edge melewati angka yang lebih besar dari angka yang seharusnya, edge tersebut tidak digunakan.
+
+\begin{lstlisting}[language=C++, caption=Validasi Urutan Angka pada Edge]
+bool advanceImportantSequence(int currentNext,
+                              const std::vector<PassedTile>& passedTiles,
+                              int& nextAfter) {
+    nextAfter = currentNext;
+    for (const PassedTile& tile : passedTiles) {
+        if (tile.type < '0' || tile.type > '9') {
+            continue;
+        }
+
+        int digit = tile.type - '0';
+        if (digit < nextAfter) {
+            continue;
+        }
+        if (digit == nextAfter) {
+            ++nextAfter;
+            continue;
+        }
+        return false;
+    }
+    return true;
+}
+\end{lstlisting}
+
+\subsection{Antarmuka CLI dan GUI}
+Program memiliki dua antarmuka. Antarmuka CLI berada pada \texttt{main.cpp}. Pengguna dapat memasukkan file input, memilih algoritma, memilih heuristic untuk GBFS atau A*, dan memilih apakah solusi akan disimpan.
+
+Antarmuka GUI berada pada \texttt{mainGUI.cpp}. GUI dibuat menggunakan \texttt{raylib}. Pada GUI, pengguna dapat mengetik nama file input, memilih algoritma, memilih heuristic, menjalankan solver, melihat visualisasi board, melakukan playback langkah solusi, dan menyimpan hasil solusi.
+
+\subsection{Modul IO}
+Modul \texttt{IO} dibuat agar CLI dan GUI tidak memiliki kode input/output yang berulang. Fungsi di dalam modul ini digunakan untuk menyelesaikan path input, membentuk path output, mengubah path solusi menjadi string, mencetak board dengan posisi aktor, serta menyimpan solusi ke file.
+
+\begin{lstlisting}[language=C++, caption=Fungsi IO Bersama]
+std::string resolveInputPath(const std::string& path);
+std::string getOutputPath(const std::string& inputPath);
+std::string directionsToString(const std::vector<char>& path);
+
+void saveSolution(const Board& board,
+                  const std::vector<char>& path,
+                  const std::vector<Position>& positions,
+                  int totalCost,
+                  int totalIterations,
+                  long long elapsedMs,
+                  const std::string& outputPath);
+\end{lstlisting}
+
+\subsection{Multithreading}
+Untuk memenuhi bagian bonus kecepatan komputasi, program menggunakan multithreading pada dua bagian. Bagian pertama adalah pembacaan dan validasi input board. Baris peta dan baris cost dibagi ke beberapa worker berdasarkan jumlah core CPU. Hasil parsing kemudian digabung kembali secara terurut sebelum dimasukkan ke objek \texttt{Board}.
+
+Bagian kedua adalah evaluasi neighbor pada proses pathfinding. Pengambilan state dari priority queue tetap dilakukan secara berurutan karena UCS, GBFS, dan A* harus selalu mengambil state dengan prioritas terbaik. Namun, evaluasi edge dari node yang sedang diproses dapat dilakukan secara paralel karena setiap edge dapat divalidasi secara independen. Setelah semua kandidat neighbor selesai dihitung, hasilnya digabung kembali ke frontier.
+
+\begin{lstlisting}[language=C++, caption=Multithreading Evaluasi Neighbor]
+for (const Edge& edge : currentNode->neighbors) {
+    futures.push_back(
+        std::async(std::launch::async, buildCandidate, edge, current));
+}
+
+for (std::future<ExpansionCandidate>& future : futures) {
+    candidates.push_back(future.get());
+}
+\end{lstlisting}
+
+\subsection{Penyimpanan Hasil}
+Hasil solusi dapat disimpan dalam bentuk file teks pada folder \texttt{test/output}. File output berisi informasi path, total cost, jumlah iterasi, waktu eksekusi, serta visualisasi posisi aktor pada setiap langkah solusi.
+
+\section{Pengujian}
+Pengujian dilakukan pada lingkungan Linux. Program diuji melalui CLI dan GUI. Build CLI dilakukan dengan \texttt{make CLI}, sedangkan build GUI dilakukan dengan \texttt{cmake} pada folder \texttt{bin/cmake-build}.
+
+\begin{longtable}{|p{5cm}|p{9cm}|}
+    \hline
+    \textbf{Pengujian} & \textbf{Hasil} \\
+    \hline
+    \endhead
+
+    Build CLI dengan \texttt{make CLI}
+    &
+    Program berhasil dikompilasi tanpa error dan menghasilkan executable \texttt{bin/tucil3}. \\
+    \hline
+
+    Build GUI dengan CMake
+    &
+    Target \texttt{tucil3\_gui} berhasil dibangun dan menghasilkan executable \texttt{bin/tucil3-gui}. \\
+    \hline
+
+    Pencarian solusi file \texttt{test.txt} menggunakan A* dengan H1
+    &
+    Solusi ditemukan dengan path \texttt{RULUDRUR}, total cost 87, dan 13 iterasi. \\
+    \hline
+
+    Input tanpa \texttt{Z}
+    &
+    Program mengeluarkan pesan error bahwa peta harus memiliki tepat satu titik awal \texttt{Z}. \\
+    \hline
+
+    Input tanpa \texttt{O}
+    &
+    Program mengeluarkan pesan error bahwa peta harus memiliki tepat satu titik tujuan \texttt{O}. \\
+    \hline
+
+    Input dengan baris kosong atau panjang baris tidak sesuai
+    &
+    Program menolak input dan memberikan pesan error format peta tidak valid. \\
+    \hline
+
+    Input dengan jumlah cost kurang atau lebih dari ukuran peta
+    &
+    Program menolak input dan memberikan pesan error jumlah cost tidak sesuai ukuran. \\
+    \hline
+\end{longtable}
+
+Contoh masukan utama yang digunakan pada pengujian adalah sebagai berikut.
+
+\begin{lstlisting}[caption=Contoh Input test.txt]
+7 7
+XXXXXXX
+X0****X
+X**X**X
+X****OX
+X1***LX
+XZ**X*X
+XXXXXXX
+999 999 999 999 999 999 999
+999 3 5 2 8 1 999
+999 7 4 999 6 9 999
+999 2 8 3 5 4 999
+999 6 1 7 2 999 999
+999 9 3 4 999 8 999
+999 999 999 999 999 999 999
+\end{lstlisting}
+
+\subsection{Tangkapan Layar Input dan Output}
+Berikut adalah bagian tangkapan layar input dan output program. Gambar dapat diletakkan pada folder \texttt{doc} dengan nama \texttt{screenshot1.png} sampai \texttt{screenshot5.png}. Apabila file gambar belum tersedia, laporan tetap dapat dikompilasi dan akan menampilkan kotak penanda tempat gambar.
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot1.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot1.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 1: Input dan output CLI untuk UCS\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan UCS.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot2.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot2.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 2: Input dan output CLI untuk GBFS dengan H1\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan GBFS H1.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot3.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot3.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 3: Input dan output CLI untuk A* dengan H1\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output menggunakan A* H1.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot4.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot4.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 4: Tampilan GUI setelah solusi ditemukan\end{minipage}}
+    }
+    \caption{Contoh pengujian input dan output pada GUI.}
+\end{figure}
+
+\begin{figure}[H]
+    \centering
+    \IfFileExists{screenshot5.png}{
+        \includegraphics[width=0.9\linewidth]{screenshot5.png}
+    }{
+        \fbox{\begin{minipage}[c][5cm][c]{0.85\linewidth}\centering Screenshot 5: Output file solusi pada folder test/output\end{minipage}}
+    }
+    \caption{Contoh hasil penyimpanan solusi.}
+\end{figure}
+
+\subsection{Analisis Hasil Percobaan}
+Pengujian berikut dilakukan pada file \texttt{test.txt}. Tabel ini membandingkan hasil UCS, GBFS, dan A* dengan beberapa heuristic yang tersedia.
+
+\begin{longtable}{|p{3cm}|p{3cm}|p{3cm}|p{3cm}|p{2cm}|}
+    \hline
+    \textbf{Algoritma} & \textbf{Heuristic} & \textbf{Path} & \textbf{Cost} & \textbf{Iterasi} \\
+    \hline
+    \endhead
+    UCS & - & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    GBFS & H1 FinishOnly & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    GBFS & H2 ImportantSequence & \texttt{RULUDRUR} & 87 & 11 \\
+    \hline
+    GBFS & H3 OrderedSequence & \texttt{RULUDRUR} & 87 & 9 \\
+    \hline
+    A* & H1 FinishOnly & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    A* & H2 ImportantSequence & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+    A* & H3 OrderedSequence & \texttt{RULUDRUR} & 87 & 13 \\
+    \hline
+\end{longtable}
+
+Berdasarkan hasil percobaan tersebut, seluruh algoritma menemukan path yang sama dengan cost 87. Pada kasus uji ini, UCS dan A* menghasilkan jumlah iterasi yang sama. Hal ini menunjukkan bahwa pada peta tersebut heuristic A* tidak memberi pengurangan ekspansi state yang signifikan dibanding UCS. Penyebabnya adalah graph sederhana yang terbentuk relatif kecil dan cost optimal dapat ditemukan dalam jumlah ekspansi yang rendah.
+
+GBFS dengan H2 dan H3 menghasilkan iterasi lebih sedikit dibanding H1. Hal ini terjadi karena H2 dan H3 mempertimbangkan urutan tile penting. H1 hanya melihat jarak ke finish, sehingga informasi bahwa angka harus dilewati terlebih dahulu tidak masuk ke prioritas pencarian. H3 menjadi yang paling sedikit iterasinya pada percobaan ini karena memperkirakan sisa perjalanan dari posisi saat ini ke seluruh target penting yang belum selesai, lalu ke finish.
+
+Walaupun GBFS pada percobaan ini menemukan cost yang sama dengan UCS dan A*, secara teoritis GBFS tetap tidak menjamin solusi optimal karena tidak menggunakan $g(n)$ dalam prioritasnya. Sebaliknya, UCS tetap menjadi acuan solusi optimal untuk cost tidak negatif, sedangkan A* dapat menjadi lebih efisien apabila heuristic yang digunakan cukup informatif dan tidak menyesatkan.
+
+\newpage
+\section{Lampiran}
+
+\begin{table}[H]
+    \centering
+    \renewcommand{\arraystretch}{1.5}
+    \begin{tabular}{|c|p{9.5cm}|c|c|}
+        \hline
+        \textbf{No} & \textbf{Poin} & \textbf{Ya} & \textbf{Tidak} \\
+        \hline
+        1 & Program berhasil dikompilasi tanpa kesalahan & $\checkmark$ &  \\
+        \hline
+        2 & Program berhasil dijalankan melalui CLI & $\checkmark$ &  \\
+        \hline
+        3 & Program berhasil dijalankan melalui GUI & $\checkmark$ &  \\
+        \hline
+        4 & Program dapat membaca masukan berkas \texttt{.txt} & $\checkmark$ &  \\
+        \hline
+        5 & Program dapat menyimpan solusi dalam berkas \texttt{.txt} & $\checkmark$ &  \\
+        \hline
+        6 & Program mengimplementasikan UCS, GBFS, dan A* & $\checkmark$ &  \\
+        \hline
+        7 & Program memiliki lebih dari satu heuristic & $\checkmark$ &  \\
+        \hline
+        8 & Program memiliki Graphical User Interface (GUI) & $\checkmark$ &  \\
+        \hline
+        9 & Program menerapkan multithreading untuk bonus kecepatan komputasi & $\checkmark$ &  \\
+        \hline
+    \end{tabular}
+\end{table}
+
+\vspace{1cm}
+\noindent
+\fbox{
+\begin{minipage}{0.97\linewidth}
+Laporan ini disusun berdasarkan implementasi program yang terdapat pada repositori.
+
+\begin{flushright}
+\IfFileExists{ttd.png}{
+    \includegraphics[height=2cm,keepaspectratio]{ttd.png}\\
+}{
+    \vspace{2cm}
+}
+Raymond Jonathan Dwi Putra Julianto
+\end{flushright}
+\end{minipage}%
+}
+
+\vspace{1cm}
+\noindent
+\textbf{Tautan Repositori:} \url{https://github.com/Alpaomega1136/Tucil3_13524059}
+
+\end{document}

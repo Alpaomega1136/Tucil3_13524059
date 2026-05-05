@@ -1,3 +1,5 @@
+Algoritma Pathfinding : GBFS
+Tipe Heuristik : H2
 Solusi Yang Ditemukan : LURDRDLULUDRDLUDRULURULDRURDLDRUDLULDRDLDRULURDL
 Cost dari Solusi : 2660
 Initial
@@ -931,5 +933,5 @@ X2**********7***********6X
 X******X*****************X
 X**********X*************X
 XXXXXXXXXXXXXXXXXXXXXXXXXX
->> Waktu eksekusi: 0.122 ms
+>> Waktu eksekusi: 0.140 ms
 >> Banyak iterasi yang dilakukan: 119 iterasi

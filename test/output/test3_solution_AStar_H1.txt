@@ -1,3 +1,5 @@
+Algoritma Pathfinding : A*
+Tipe Heuristik : H1
 Solusi Yang Ditemukan : LURDRDLULUDRDLUDRULDRURDLDRUDLULDRDLDRULURDL
 Cost dari Solusi : 2452
 Initial
@@ -855,5 +857,5 @@ X2**********7***********6X
 X******X*****************X
 X**********X*************X
 XXXXXXXXXXXXXXXXXXXXXXXXXX
->> Waktu eksekusi: 0.125 ms
+>> Waktu eksekusi: 0.135 ms
 >> Banyak iterasi yang dilakukan: 217 iterasi

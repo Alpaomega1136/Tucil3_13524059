@@ -1,3 +1,5 @@
+Algoritma Pathfinding : GBFS
+Tipe Heuristik : H1
 Solusi Yang Ditemukan : RULUDRUR
 Cost dari Solusi : 87
 Initial

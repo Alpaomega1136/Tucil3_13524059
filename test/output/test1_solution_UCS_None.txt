@@ -1,3 +1,5 @@
+Algoritma Pathfinding : UCS
+Tipe Heuristik : None
 Solusi Yang Ditemukan : RULUDRUR
 Cost dari Solusi : 87
 Initial
@@ -72,5 +74,5 @@ X****ZX
 X1***LX
 X***X*X
 XXXXXXX
->> Waktu eksekusi: 0.015 ms
+>> Waktu eksekusi: 0.019 ms
 >> Banyak iterasi yang dilakukan: 13 iterasi

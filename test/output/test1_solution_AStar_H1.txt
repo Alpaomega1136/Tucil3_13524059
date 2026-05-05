@@ -1,3 +1,5 @@
+Algoritma Pathfinding : A*
+Tipe Heuristik : H1
 Solusi Yang Ditemukan : RULUDRUR
 Cost dari Solusi : 87
 Initial
@@ -72,5 +74,5 @@ X****ZX
 X1***LX
 X***X*X
 XXXXXXX
->> Waktu eksekusi: 0.017 ms
+>> Waktu eksekusi: 0.022 ms
 >> Banyak iterasi yang dilakukan: 13 iterasi
