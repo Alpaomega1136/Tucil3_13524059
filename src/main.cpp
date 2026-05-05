@@ -5,6 +5,7 @@
 #include <chrono>
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <ostream>
 #include <stdexcept>
@@ -187,7 +188,7 @@ void runPlayback(const Board& board, const std::vector<Position>& positions, std
 }
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                  int totalIterations,long long elapsedMs, const std::string& outputPath) {
+                  int totalIterations, double elapsedMs, const std::string& outputPath) {
     std::string projectOutputPath = getProjectPath(outputPath);
     std::filesystem::create_directories(std::filesystem::path(projectOutputPath).parent_path());
     std::ofstream output(projectOutputPath);
@@ -198,12 +199,12 @@ void saveSolution(const Board& board, const std::vector<char>& path, const std::
     output << "Solusi Yang Ditemukan : " << directionsToString(path) << '\n';
     output << "Cost dari Solusi : " << totalCost << '\n';
     writeSolutionSteps(output, board, path, positions);
-    output << ">> Waktu eksekusi: " << elapsedMs << " ms\n";
+    output << ">> Waktu eksekusi: " << std::fixed << std::setprecision(3) << elapsedMs << " ms\n";
     output << ">> Banyak iterasi yang dilakukan: " << totalIterations << " iterasi\n";
 }
 
 void askToSaveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                       int totalIterations, long long elapsedMs, const std::string& outputPath) {
+                       int totalIterations, double elapsedMs, const std::string& outputPath) {
     std::string answer;
     std::cout << ">> Apakah Anda ingin menyimpan solusi? (Ya/Tidak) :\n";
     std::cin >> answer;
@@ -235,8 +236,6 @@ int main(int argc, char* argv[]) {
     try {
         std::string inputPath = readInputPath(argc, argv);
         Board board = readBoardFromFile(inputPath);
-        Graph graph;
-        graph.buildFromBoard(board);
 
         std::string algorithm = readAlgorithm();
         HeuristicMode heuristicMode = HeuristicMode::ImportantSequence;
@@ -248,12 +247,17 @@ int main(int argc, char* argv[]) {
             throw std::runtime_error("Algoritma harus UCS, GBFS, atau A*.");
         }
 
-        PathFinding pathFinding;
         auto startTime = std::chrono::steady_clock::now();
+
+        Graph graph;
+        graph.buildFromBoard(board);
+
+        PathFinding pathFinding;
         solveWithAlgorithm(algorithm, heuristicMode, graph, pathFinding);
+
         auto endTime = std::chrono::steady_clock::now();
 
-        long long elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+        double elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
 
         std::vector<char> path = pathFinding.getPath();
         std::vector<Position> positions = pathFinding.getPathPositions();
@@ -261,7 +265,7 @@ int main(int argc, char* argv[]) {
         // Path tidak ditemukan
         if (path.empty()) {
             std::cout << "Solusi Tidak Ditemukan\n";
-            std::cout << ">> Waktu eksekusi: " << elapsedMs << " ms\n";
+            std::cout << ">> Waktu eksekusi: " << std::fixed << std::setprecision(3) << elapsedMs << " ms\n";
             std::cout << ">> Banyak iterasi yang dilakukan: "
                       << pathFinding.getTotalIterations() << " iterasi\n";
             return 0;
@@ -271,7 +275,7 @@ int main(int argc, char* argv[]) {
         std::cout << "Solusi Yang Ditemukan : " << directionsToString(path) << '\n';
         std::cout << "Cost dari Solusi : " << pathFinding.getTotalCost() << '\n';
         printSolutionSteps(board, path, positions);
-        std::cout << ">> Waktu eksekusi: " << elapsedMs << " ms\n";
+        std::cout << ">> Waktu eksekusi: " << std::fixed << std::setprecision(3) << elapsedMs << " ms\n";
         std::cout << ">> Banyak iterasi yang dilakukan: "
                   << pathFinding.getTotalIterations() << " iterasi\n";
         runPlayback(board, positions, path.size());
