@@ -7,8 +7,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_SOURCE_DIR}/bin)
 
-find_package(Threads REQUIRED)
-
 add_library(tucil3_core
     src/Board.cpp
     src/IO.cpp
@@ -17,7 +15,6 @@ add_library(tucil3_core
 )
 
 target_include_directories(tucil3_core PUBLIC include)
-target_link_libraries(tucil3_core PUBLIC Threads::Threads)
 
 add_executable(tucil3_gui src/mainGUI.cpp)
 target_link_libraries(tucil3_gui PRIVATE tucil3_core)

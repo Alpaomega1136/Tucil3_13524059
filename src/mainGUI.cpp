@@ -8,6 +8,8 @@
 #include <algorithm>
 #include <chrono>
 #include <filesystem>
+#include <iomanip>
+#include <sstream>
 #include <stdexcept>
 #include <string>
 #include <vector>
@@ -39,7 +41,7 @@ struct GuiState {
     int totalCost = 0;
     int totalIterations = 0;
     int currentStep = 0;
-    long long elapsedMs = 0;
+    double elapsedMs = 0.0;
     bool hasSolution = false;
 };
 
@@ -70,6 +72,12 @@ std::string selectedHeuristicName(const GuiState& state) {
     return heuristicCode(state.heuristic);
 }
 
+std::string formatMilliseconds(double elapsedMs) {
+    std::ostringstream stream;
+    stream << std::fixed << std::setprecision(3) << elapsedMs << " ms";
+    return stream.str();
+}
+
 void saveGuiSolution(const GuiState& state) {
     saveSolution(state.board, state.path, state.positions, state.totalCost, state.totalIterations, state.elapsedMs,
                 getOutputPath(state.inputPath, algorithmName(state.algorithm), selectedHeuristicName(state)),
@@ -88,11 +96,12 @@ void solve(GuiState& state) {
 
     state.board = readBoardFromFile(resolvedInputPath);
 
+    auto startTime = std::chrono::steady_clock::now();
+
     Graph graph;
     graph.buildFromBoard(state.board);
 
     PathFinding pathFinding;
-    auto startTime = std::chrono::steady_clock::now();
     if (state.algorithm == AlgorithmChoice::UCS) {
         pathFinding.UCS(graph);
     } else if (state.algorithm == AlgorithmChoice::GBFS) {
@@ -103,7 +112,7 @@ void solve(GuiState& state) {
     auto endTime = std::chrono::steady_clock::now();
 
     state.inputPath = resolvedInputPath;
-    state.elapsedMs = std::chrono::duration_cast<std::chrono::milliseconds>(endTime - startTime).count();
+    state.elapsedMs = std::chrono::duration<double, std::milli>(endTime - startTime).count();
     state.path = pathFinding.getPath();
     state.positions = pathFinding.getPathPositions();
     state.totalCost = pathFinding.getTotalCost();
@@ -455,7 +464,7 @@ int main() {
         drawMetric(Rectangle{536, 200, 266, 94}, "Path", state.path.empty() ? "-" : directionsToString(state.path));
         drawMetric(Rectangle{824, 200, 178, 94}, "Cost", std::to_string(state.totalCost));
         drawMetric(Rectangle{1024, 200, 196, 94}, "Iterasi", std::to_string(state.totalIterations));
-        drawMetric(Rectangle{1242, 200, 196, 94}, "Waktu", std::to_string(state.elapsedMs) + " ms");
+        drawMetric(Rectangle{1242, 200, 196, 94}, "Waktu", formatMilliseconds(state.elapsedMs));
         drawMetric(Rectangle{1460, 200, 178, 94}, "Step", std::to_string(state.currentStep));
 
         drawBoard(state, Rectangle{536, 330, 1310, 480});

@@ -2,6 +2,7 @@
 
 #include <filesystem>
 #include <fstream>
+#include <iomanip>
 #include <ostream>
 #include <stdexcept>
 #include <string>
@@ -147,12 +148,12 @@ void writeSolutionSteps(std::ostream& output, const Board& board, const std::vec
 }
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                int totalIterations, long long elapsedMs, const std::string& outputPath) {
+                int totalIterations, double elapsedMs, const std::string& outputPath) {
     saveSolution(board, path, positions, totalCost, totalIterations, elapsedMs, outputPath, "-", "-");
 }
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                int totalIterations, long long elapsedMs, const std::string& outputPath, const std::string& algorithm,
+                int totalIterations, double elapsedMs, const std::string& outputPath, const std::string& algorithm,
                 const std::string& heuristic) {
     std::string projectOutputPath = getProjectPath(outputPath);
     std::filesystem::create_directories(std::filesystem::path(projectOutputPath).parent_path());
@@ -166,6 +167,6 @@ void saveSolution(const Board& board, const std::vector<char>& path, const std::
     output << "Solusi Yang Ditemukan : " << directionsToString(path) << '\n';
     output << "Cost dari Solusi : " << totalCost << '\n';
     writeSolutionSteps(output, board, path, positions);
-    output << ">> Waktu eksekusi: " << elapsedMs << " ms\n";
+    output << ">> Waktu eksekusi: " << std::fixed << std::setprecision(3) << elapsedMs << " ms\n";
     output << ">> Banyak iterasi yang dilakukan: " << totalIterations << " iterasi\n";
 }

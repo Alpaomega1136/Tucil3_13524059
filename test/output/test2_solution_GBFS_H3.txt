@@ -436,5 +436,5 @@ X*******XX******X
 X*****9*********X
 X**3************X
 XXXXXXXXXXXXXXXXX
->> Waktu eksekusi: 1 ms
+>> Waktu eksekusi: 0.067 ms
 >> Banyak iterasi yang dilakukan: 36 iterasi

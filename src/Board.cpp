@@ -3,12 +3,10 @@
 #include <algorithm>
 #include <cmath>
 #include <fstream>
-#include <future>
 #include <limits>
 #include <sstream>
 #include <stdexcept>
 #include <string>
-#include <thread>
 
 namespace {
 bool isValidTileType(char type) {
@@ -87,13 +85,6 @@ ParsedCostRow parseCostRow(const std::string& line, int colCount) {
     return parsed;
 }
 
-int getWorkerCount(int itemCount) {
-    unsigned int hardwareThreads = std::thread::hardware_concurrency();
-    if (hardwareThreads == 0) {
-        hardwareThreads = 2;
-    }
-    return std::max(1, std::min(itemCount, static_cast<int>(hardwareThreads)));
-}
 }
 
 Board::Board(int rows, int cols)
@@ -310,27 +301,8 @@ Board readBoardFromFile(const std::string& filePath) {
         throw std::runtime_error("Input memiliki data tambahan setelah matriks cost.");
     }
 
-    std::vector<ParsedMapRow> parsedMapRows(rowCount);
-    std::vector<std::future<void>> mapFutures;
-    int mapWorkerCount = getWorkerCount(rowCount);
-    mapFutures.reserve(mapWorkerCount);
-
-    for (int worker = 0; worker < mapWorkerCount; ++worker) {
-        int begin = worker * rowCount / mapWorkerCount;
-        int end = (worker + 1) * rowCount / mapWorkerCount;
-        mapFutures.push_back(std::async(std::launch::async, [&mapLines, &parsedMapRows, colCount, begin, end]() {
-            for (int row = begin; row < end; ++row) {
-                parsedMapRows[row] = parseMapRow(mapLines[row], colCount);
-            }
-        }));
-    }
-
-    for (std::future<void>& future : mapFutures) {
-        future.get();
-    }
-
     for (int row = 0; row < rowCount; ++row) {
-        const ParsedMapRow& parsed = parsedMapRows[row];
+        ParsedMapRow parsed = parseMapRow(mapLines[row], colCount);
         startCount += parsed.startCount;
         goalCount += parsed.goalCount;
         maxNumber = std::max(maxNumber, parsed.maxNumber);
@@ -357,27 +329,8 @@ Board readBoardFromFile(const std::string& filePath) {
     }
     board.setImportantCount(maxNumber + 1);
 
-    std::vector<ParsedCostRow> parsedCostRows(rowCount);
-    std::vector<std::future<void>> costFutures;
-    int costWorkerCount = getWorkerCount(rowCount);
-    costFutures.reserve(costWorkerCount);
-
-    for (int worker = 0; worker < costWorkerCount; ++worker) {
-        int begin = worker * rowCount / costWorkerCount;
-        int end = (worker + 1) * rowCount / costWorkerCount;
-        costFutures.push_back(std::async(std::launch::async, [&costLines, &parsedCostRows, colCount, begin, end]() {
-            for (int row = begin; row < end; ++row) {
-                parsedCostRows[row] = parseCostRow(costLines[row], colCount);
-            }
-        }));
-    }
-
-    for (std::future<void>& future : costFutures) {
-        future.get();
-    }
-
     for (int row = 0; row < rowCount; ++row) {
-        const ParsedCostRow& parsed = parsedCostRows[row];
+        ParsedCostRow parsed = parseCostRow(costLines[row], colCount);
         for (int col = 0; col < colCount; ++col) {
             board.setCost(row, col, parsed.costs[col]);
         }

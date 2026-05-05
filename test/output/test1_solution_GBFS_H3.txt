@@ -74,5 +74,5 @@ X****ZX
 X1***LX
 X***X*X
 XXXXXXX
->> Waktu eksekusi: 0 ms
+>> Waktu eksekusi: 0.019 ms
 >> Banyak iterasi yang dilakukan: 9 iterasi
