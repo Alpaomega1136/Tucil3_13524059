@@ -43,8 +43,37 @@ struct GuiState {
     bool hasSolution = false;
 };
 
+std::string algorithmName(AlgorithmChoice algorithm) {
+    if (algorithm == AlgorithmChoice::UCS) {
+        return "UCS";
+    }
+    if (algorithm == AlgorithmChoice::GBFS) {
+        return "GBFS";
+    }
+    return "A*";
+}
+
+std::string heuristicCode(HeuristicMode mode) {
+    if (mode == HeuristicMode::FinishOnly) {
+        return "H1";
+    }
+    if (mode == HeuristicMode::ImportantSequence) {
+        return "H2";
+    }
+    return "H3";
+}
+
+std::string selectedHeuristicName(const GuiState& state) {
+    if (state.algorithm == AlgorithmChoice::UCS) {
+        return "None";
+    }
+    return heuristicCode(state.heuristic);
+}
+
 void saveGuiSolution(const GuiState& state) {
-    saveSolution(state.board, state.path, state.positions, state.totalCost, state.totalIterations, state.elapsedMs, getOutputPath(state.inputPath));
+    saveSolution(state.board, state.path, state.positions, state.totalCost, state.totalIterations, state.elapsedMs,
+                getOutputPath(state.inputPath, algorithmName(state.algorithm), selectedHeuristicName(state)),
+                algorithmName(state.algorithm), selectedHeuristicName(state));
 }
 
 void solve(GuiState& state) {
@@ -400,7 +429,7 @@ int main() {
             try {
                 if (state.hasSolution) {
                     saveGuiSolution(state);
-                    state.message = "Solusi disimpan pada " + getOutputPath(state.inputPath);
+                    state.message = "Solusi disimpan pada " + getOutputPath(state.inputPath, algorithmName(state.algorithm), selectedHeuristicName(state));
                 } else {
                     state.message = "Error: Tidak ada solusi untuk disimpan.";
                 }

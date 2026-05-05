@@ -220,19 +220,14 @@ std::vector<PassedTile> Board::getImportantTiles() const {
         }
     }
 
-    std::sort(importantTiles.begin(), importantTiles.end(),
-              [](const PassedTile& left, const PassedTile& right) {
-                  return left.type < right.type;
-              });
+    std::sort(importantTiles.begin(), importantTiles.end(), [](const PassedTile& left, const PassedTile& right) {
+                return left.type < right.type;
+            });
 
     return importantTiles;
 }
 
-SlideResult Board::slide(int startRow,
-                         int startCol,
-                         int deltaRow,
-                         int deltaCol,
-                         char direction) const {
+SlideResult Board::slide(int startRow, int startCol, int deltaRow, int deltaCol, char direction) const {
     SlideResult result;
     result.direction = direction;
 
@@ -271,9 +266,7 @@ SlideResult Board::slide(int startRow,
         if (isImportantTile(currentRow, currentCol) ||
             isGoal(currentRow, currentCol)) {
             result.passedImportant.push_back(
-                PassedTile{currentRow,
-                           currentCol,
-                           getType(currentRow, currentCol)});
+                PassedTile{currentRow, currentCol, getType(currentRow, currentCol)});
         }
     }
 }

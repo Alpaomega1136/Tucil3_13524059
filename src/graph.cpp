@@ -138,7 +138,7 @@ void Graph::buildFromBoard(const Board& board) {
 
         for (int i = 0; i < 4; ++i) {
             SlideResult result = board.slide(currentNode->row, currentNode->col,DELTA_ROW[i],
-                                             DELTA_COL[i], DIRECTIONS[i]);
+                                            DELTA_COL[i], DIRECTIONS[i]);
             if (!result.valid) {
                 continue;
             }

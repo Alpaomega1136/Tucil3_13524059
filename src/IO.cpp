@@ -4,6 +4,7 @@
 #include <fstream>
 #include <ostream>
 #include <stdexcept>
+#include <string>
 
 namespace {
 const std::string INPUT_FOLDER = "test/input/";
@@ -27,6 +28,27 @@ std::filesystem::path getProjectRoot() {
     }
 
     return std::filesystem::current_path();
+}
+
+std::string safeFilePart(const std::string& value) {
+    std::string result;
+    for (char character : value) {
+        if ((character >= 'A' && character <= 'Z') ||
+            (character >= 'a' && character <= 'z') ||
+            (character >= '0' && character <= '9')) {
+            result.push_back(character);
+        } else if (character == '*') {
+            result += "Star";
+        } else if (character == '+' || character == '-' || character == '_') {
+            result.push_back('_');
+        }
+    }
+
+    if (result.empty()) {
+        return "None";
+    }
+
+    return result;
 }
 }
 
@@ -73,6 +95,16 @@ std::string getOutputPath(const std::string& inputPath) {
     return OUTPUT_FOLDER + stem + "_solution.txt";
 }
 
+std::string getOutputPath(const std::string& inputPath, const std::string& algorithm, const std::string& heuristic) {
+    std::filesystem::path path(inputPath);
+    std::string stem = path.stem().string();
+    if (stem.empty()) {
+        stem = "solusi";
+    }
+
+    return OUTPUT_FOLDER + stem + "_solution_" + safeFilePart(algorithm) + "_" + safeFilePart(heuristic) + ".txt";
+}
+
 std::string directionsToString(const std::vector<char>& path) {
     std::string result;
     for (char direction : path) {
@@ -115,7 +147,13 @@ void writeSolutionSteps(std::ostream& output, const Board& board, const std::vec
 }
 
 void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                  int totalIterations, long long elapsedMs, const std::string& outputPath) {
+                int totalIterations, long long elapsedMs, const std::string& outputPath) {
+    saveSolution(board, path, positions, totalCost, totalIterations, elapsedMs, outputPath, "-", "-");
+}
+
+void saveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
+                int totalIterations, long long elapsedMs, const std::string& outputPath, const std::string& algorithm,
+                const std::string& heuristic) {
     std::string projectOutputPath = getProjectPath(outputPath);
     std::filesystem::create_directories(std::filesystem::path(projectOutputPath).parent_path());
     std::ofstream output(projectOutputPath);
@@ -123,6 +161,8 @@ void saveSolution(const Board& board, const std::vector<char>& path, const std::
         throw std::runtime_error("File solusi tidak dapat dibuat.");
     }
 
+    output << "Algoritma Pathfinding : " << algorithm << '\n';
+    output << "Tipe Heuristik : " << heuristic << '\n';
     output << "Solusi Yang Ditemukan : " << directionsToString(path) << '\n';
     output << "Cost dari Solusi : " << totalCost << '\n';
     writeSolutionSteps(output, board, path, positions);

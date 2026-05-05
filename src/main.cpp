@@ -46,6 +46,16 @@ HeuristicMode readHeuristicMode() {
     throw std::runtime_error("Heuristic harus H1, H2, atau H3.");
 }
 
+std::string heuristicCode(HeuristicMode mode) {
+    if (mode == HeuristicMode::FinishOnly) {
+        return "H1";
+    }
+    if (mode == HeuristicMode::ImportantSequence) {
+        return "H2";
+    }
+    return "H3";
+}
+
 void printBoardWithActor(const Board& board, Position actor) {
     writeBoardWithActor(std::cout, board, actor);
 }
@@ -78,7 +88,8 @@ void runPlayback(const Board& board, const std::vector<Position>& positions, std
 }
 
 void askToSaveSolution(const Board& board, const std::vector<char>& path, const std::vector<Position>& positions, int totalCost,
-                       int totalIterations, long long elapsedMs, const std::string& outputPath) {
+                       int totalIterations, long long elapsedMs, const std::string& outputPath, const std::string& algorithm,
+                       const std::string& heuristic) {
     std::string answer;
     std::cout << ">> Apakah Anda ingin menyimpan solusi? (Ya/Tidak) :\n";
     std::cin >> answer;
@@ -86,7 +97,7 @@ void askToSaveSolution(const Board& board, const std::vector<char>& path, const 
         return;
     }
 
-    saveSolution(board, path, positions, totalCost, totalIterations, elapsedMs, outputPath);
+    saveSolution(board, path, positions, totalCost, totalIterations, elapsedMs, outputPath, algorithm, heuristic);
     std::cout << ">> Solusi disimpan pada " << outputPath << '\n';
 }
 
@@ -150,7 +161,9 @@ int main(int argc, char* argv[]) {
         std::cout << ">> Banyak iterasi yang dilakukan: "
                   << pathFinding.getTotalIterations() << " iterasi\n";
         runPlayback(board, positions, path.size());
-        askToSaveSolution(board, path, positions, pathFinding.getTotalCost(), pathFinding.getTotalIterations(), elapsedMs, getOutputPath(inputPath));
+        std::string heuristic = algorithm == "UCS" ? "None" : heuristicCode(heuristicMode);
+        askToSaveSolution(board, path, positions, pathFinding.getTotalCost(), pathFinding.getTotalIterations(), elapsedMs,
+                        getOutputPath(inputPath, algorithm, heuristic), algorithm, heuristic);
     } catch (const std::exception& error) {
         std::cerr << "Error: " << error.what() << '\n';
         return 1;
