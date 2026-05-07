@@ -2,148 +2,120 @@
 
 Tugas Kecil 3 IF2211 Strategi Algoritma 2025/2026.
 
-Program untuk menyelesaikan permainan **Ice Sliding Puzzle Solver** dengan pendekatan graph search. Aktor bergerak dengan mekanisme sliding: ketika memilih arah, aktor terus berjalan sampai berhenti tepat sebelum rintangan `X`. Jalur yang melewati lava `L`, keluar papan, atau melewati angka tidak sesuai urutan dianggap tidak valid.
+## Penjelasan Singkat Program
 
-## Deskripsi Singkat
+Program ini merupakan penyelesai permainan **Ice Sliding Puzzle** menggunakan pendekatan pencarian jalur pada graph. Papan permainan dibaca dari file input, lalu direpresentasikan sebagai graph sederhana yang berisi titik-titik tempat pemain dapat berhenti setelah melakukan sliding.
 
-Papan permainan dibaca dari file `.txt`. Program membangun graph sederhana dari posisi-posisi tempat aktor dapat berhenti. Setiap edge menyimpan satu gerakan sliding lengkap, termasuk arah gerak, cost total tile yang dilewati, dan tile penting yang dilewati selama sliding.
+Pada permainan ini, pemain bergerak ke satu arah dan akan terus meluncur sampai berhenti tepat sebelum rintangan. Program mencari jalur valid dari titik awal `Z` menuju finish `O` dengan tetap memperhatikan tile penting berupa angka `0` sampai `9` yang harus dilewati sesuai urutan.
 
-Solusi dianggap valid jika:
+Algoritma pathfinding yang tersedia:
 
-- Aktor berhenti tepat di tile tujuan `O` (hutuf O).
-- Semua angka pada papan sudah dilewati sesuai urutan dari `0` (angka 0) sampai angka terbesar yang ada (maksimal angka 9).
-- Jalur tidak melewati lava `L`.
-- Gerakan yang tidak memiliki rintangan sebagai titik berhenti dianggap game over dan tidak dimasukkan ke graph.
+- `UCS`: Uniform Cost Search, memakai total cost aktual `g(n)`.
+- `GBFS`: Greedy Best First Search, memakai nilai heuristik `h(n)`.
+- `A*`: A Star, memakai `g(n) + h(n)`.
 
-## Algoritma
+Heuristik yang tersedia untuk `GBFS` dan `A*`:
 
-Program menyediakan tiga algoritma pencarian:
+- `H1`: FinishOnly, menghitung jarak ke finish.
+- `H2`: ImportantSequence, menghitung jarak ke target penting berikutnya.
+- `H3`: OrderedSequence, menghitung estimasi jarak ke seluruh target penting yang belum selesai secara berurutan sampai finish.
 
-- `UCS`: Uniform Cost Search, memakai total cost aktual dari start.
-- `GBFS`: Greedy Best First Search, memakai nilai heuristik sebagai prioritas.
-- `A*`: A Star, memakai `g(n) + h(n)` sebagai prioritas.
+## Requirement dan Instalasi
 
-Untuk `GBFS` dan `A*`, tersedia tiga pilihan heuristik:
-
-- `H1`: FinishOnly, jarak Manhattan dari node saat ini ke finish `O`.
-- `H2`: ImportantSequence, jarak Manhattan ke angka penting berikutnya. Jika semua angka selesai, jarak dihitung ke finish `O`.
-- `H3`: OrderedSequence, jumlah estimasi jarak Manhattan dari posisi saat ini ke semua target yang belum selesai secara berurutan, lalu ke finish `O`.
-
-Semua algoritma tetap memvalidasi urutan angka. Perbedaan `H1`, `H2`, dan `H3` hanya memengaruhi prioritas pencarian pada algoritma yang memakai heuristik.
-
-## Requirement
+Requirement utama:
 
 - C++17
 - `g++`
 - `make`
-- `cmake` untuk build otomatis dengan dependency GUI
-- `raylib` untuk build versi GUI. Jika memakai CMake dan raylib belum tersedia, CMake akan mencoba mengunduh raylib otomatis.
 
-## Struktur Direktori
+Requirement tambahan untuk GUI:
 
-```text
-.
-├── bin/              # Executable dan object file hasil build
-├── doc/              # Dokumen spesifikasi tugas
-├── include/          # Header C++
-├── src/              # Source C++
-├── test/
-│   ├── input/        # File input test case
-│   └── output/       # File output solusi
-├── Makefile
-└── README.md
-```
+- `cmake` minimal versi 3.16
+- `raylib`
 
-## Build
+Jika `raylib` belum terpasang, build GUI melalui CMake akan mencoba mengunduh `raylib` secara otomatis menggunakan `FetchContent`.
 
-### Makefile
+## Cara Mengkompilasi Program
+
+### CLI
+
+Kompilasi program CLI dengan Makefile:
 
 ```bash
 make
 ```
 
-Makefile digunakan untuk membangun versi CLI.
+Hasil executable CLI berada di:
 
-```bash
-make CLI
+```text
+bin/tucil3
 ```
 
-Hasil build:
-
-- CLI: `bin/tucil3`
-
-Untuk membersihkan hasil build:
+Untuk membersihkan hasil build CLI:
 
 ```bash
 make clean
 ```
 
-Untuk build ulang dari awal:
+Untuk build ulang:
 
 ```bash
 make rebuild
 ```
 
-### CMake
+### GUI
 
-CMake disediakan agar dependency GUI `raylib` bisa dicari otomatis. Jika raylib belum terpasang, CMake akan mencoba mengunduh raylib melalui `FetchContent`.
+Kompilasi program GUI dengan CMake:
 
 ```bash
 cmake -S . -B bin/cmake-build
 cmake --build bin/cmake-build --target tucil3_gui
 ```
 
-Folder konfigurasi dan hasil build internal CMake berada di:
-
-```text
-bin/cmake-build
-```
-
-Executable GUI tetap dibuat di:
+Hasil executable GUI berada di:
 
 ```text
 bin/tucil3-gui
 ```
 
-## Cara Menggunakan CLI
+## Cara Menjalankan dan Menggunakan Program
 
-Build versi CLI:
+### Menjalankan CLI
 
-```bash
-make CLI
-```
-
-Jalankan dengan argumen file input:
+Jalankan program CLI dengan Makefile:
 
 ```bash
-./bin/tucil3 test.txt
+make run
 ```
 
-Jika nama file tidak memuat folder, program akan mencari file tersebut di:
+Saat program berjalan, pengguna memasukkan:
+
+- nama file input,
+- algoritma pathfinding (`UCS`, `GBFS`, atau `A*`),
+- jenis heuristik (`H1`, `H2`, atau `H3`) untuk `GBFS` dan `A*`,
+- pilihan untuk menyimpan hasil solusi.
+
+Jika nama file input tidak memuat folder, program akan mencari input dari folder:
 
 ```text
-test/input/test.txt
+test/input/
 ```
 
-Program juga dapat dijalankan tanpa argumen:
+Contoh input `test1.txt` akan dibaca sebagai:
 
-```bash
-./bin/tucil3
+```text
+test/input/test1.txt
 ```
 
+Jika hasil disimpan, file output akan berada di:
 
-## Cara Menggunakan GUI
-
-Build versi GUI:
-
-```bash
-cmake -S . -B bin/cmake-build
-cmake --build bin/cmake-build --target tucil3_gui
+```text
+test/output/
 ```
 
-Jika raylib belum tersedia secara manual, CMake akan mencoba mengunduh raylib otomatis.
+### Menjalankan GUI
 
-Jalankan GUI dengan target CMake:
+Jalankan GUI melalui target CMake:
 
 ```bash
 cmake --build bin/cmake-build --target run
@@ -155,6 +127,8 @@ Atau jalankan executable langsung:
 ./bin/tucil3-gui
 ```
 
+Pada GUI, pengguna dapat memasukkan nama file input, memilih algoritma, memilih heuristik, menjalankan pencarian, melihat visualisasi solusi, dan menyimpan hasil solusi.
+
 ## Format Input
 
 Baris pertama berisi ukuran papan:
@@ -163,7 +137,7 @@ Baris pertama berisi ukuran papan:
 N M
 ```
 
-`N` baris berikutnya berisi peta permainan. Setelah itu, `N` baris berikutnya berisi cost traversal untuk setiap tile.
+`N` baris berikutnya berisi peta permainan. Setelah itu, `N` baris berikutnya berisi cost traversal setiap tile.
 
 Format umum:
 
@@ -181,23 +155,21 @@ Format umum:
 
 Keterangan tile:
 
-- `*`: path yang bisa dilewati.
-- `X`: rintangan atau batu. Aktor berhenti tepat sebelum tile ini.
-- `L`: lava. Jalur yang melewati tile ini tidak valid.
-- `Z`: posisi awal aktor.
-- `O`: titik tujuan.
-- `0` sampai `9`: tile penting yang harus dilewati sesuai urutan.
+- `*`: tile kosong yang dapat dilewati.
+- `X`: rintangan atau batu.
+- `L`: lava.
+- `Z`: posisi awal.
+- `O`: finish.
+- `0` sampai `9`: tile penting yang harus dilewati berurutan.
 
-Ketentuan input:
-
-- Papan boleh berbentuk persegi atau persegi panjang.
-- Harus ada tepat satu `Z`.
-- Harus ada tepat satu `O`.
-- Jika ada angka, angka harus berurutan mulai dari `0`.
-- Cost harus tersedia untuk semua tile, termasuk `X` dan `L`, walaupun cost `X` dan `L` tidak dihitung dalam solusi valid.
-
-Contoh input tersedia di:
+Contoh file input dapat diletakkan di:
 
 ```text
 test/input/test.txt
 ```
+
+## Author
+
+Raymond Jonathan Dwi Putra Julianto  
+NIM: 13524059  
+IF2211 Strategi Algoritma

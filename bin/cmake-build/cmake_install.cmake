@@ -1,4 +1,4 @@
-# Install script for directory: /mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059
+# Install script for directory: /home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
@@ -50,5 +50,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

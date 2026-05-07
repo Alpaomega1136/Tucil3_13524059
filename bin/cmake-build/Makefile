@@ -57,10 +57,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
+CMAKE_SOURCE_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
+CMAKE_BINARY_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -87,9 +87,9 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build//CMakeFiles/progress.marks"
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build//CMakeFiles/progress.marks"
 	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
-	$(CMAKE_COMMAND) -E cmake_progress_start "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" 0
+	$(CMAKE_COMMAND) -E cmake_progress_start "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" 0
 .PHONY : all
 
 # The main clean target

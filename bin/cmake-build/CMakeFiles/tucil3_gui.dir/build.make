@@ -53,10 +53,10 @@ RM = /usr/bin/cmake -E rm -f
 EQUALS = =
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
+CMAKE_SOURCE_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059"
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
+CMAKE_BINARY_DIR = "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build"
 
 # Include any dependencies generated for this target.
 include CMakeFiles/tucil3_gui.dir/depend.make
@@ -70,18 +70,18 @@ include CMakeFiles/tucil3_gui.dir/progress.make
 include CMakeFiles/tucil3_gui.dir/flags.make
 
 CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: CMakeFiles/tucil3_gui.dir/flags.make
-CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/mainGUI.cpp
+CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/mainGUI.cpp
 CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o: CMakeFiles/tucil3_gui.dir/compiler_depend.ts
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -MF CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o.d -o CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -c "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp"
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_1) "Building CXX object CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o"
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -MD -MT CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -MF CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o.d -o CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -c "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp"
 
 CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.i: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Preprocessing CXX source to CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.i"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" > CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.i
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -E "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" > CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.i
 
 CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.s: cmake_force
 	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green "Compiling CXX source to assembly CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.s"
-	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" -o CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.s
+	/usr/bin/c++ $(CXX_DEFINES) $(CXX_INCLUDES) $(CXX_FLAGS) -S "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" -o CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.s
 
 # Object files for target tucil3_gui
 tucil3_gui_OBJECTS = \
@@ -90,16 +90,16 @@ tucil3_gui_OBJECTS = \
 # External object files for target tucil3_gui
 tucil3_gui_EXTERNAL_OBJECTS =
 
-/mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o
-/mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/build.make
-/mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: libtucil3_core.a
-/mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: /usr/local/lib/libraylib.so
-/mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/link.txt
-	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable \"/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/tucil3-gui\""
+/home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o
+/home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/build.make
+/home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: libtucil3_core.a
+/home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: /usr/local/lib/libraylib.so
+/home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui: CMakeFiles/tucil3_gui.dir/link.txt
+	@$(CMAKE_COMMAND) -E cmake_echo_color "--switch=$(COLOR)" --green --bold --progress-dir="/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles" --progress-num=$(CMAKE_PROGRESS_2) "Linking CXX executable \"/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/tucil3-gui\""
 	$(CMAKE_COMMAND) -E cmake_link_script CMakeFiles/tucil3_gui.dir/link.txt --verbose=$(VERBOSE)
 
 # Rule to build all files generated by this target.
-CMakeFiles/tucil3_gui.dir/build: /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui
+CMakeFiles/tucil3_gui.dir/build: /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/bin/tucil3-gui
 .PHONY : CMakeFiles/tucil3_gui.dir/build
 
 CMakeFiles/tucil3_gui.dir/clean:
@@ -107,6 +107,6 @@ CMakeFiles/tucil3_gui.dir/clean:
 .PHONY : CMakeFiles/tucil3_gui.dir/clean
 
 CMakeFiles/tucil3_gui.dir/depend:
-	cd "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles/tucil3_gui.dir/DependInfo.cmake" "--color=$(COLOR)"
+	cd "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" && $(CMAKE_COMMAND) -E cmake_depends "Unix Makefiles" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build" "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/cmake-build/CMakeFiles/tucil3_gui.dir/DependInfo.cmake" "--color=$(COLOR)"
 .PHONY : CMakeFiles/tucil3_gui.dir/depend
 

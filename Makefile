@@ -6,11 +6,9 @@ BUILD_DIR := bin
 SRC := $(filter-out src/mainGUI.cpp,$(wildcard src/*.cpp))
 OBJ := $(patsubst src/%.cpp,$(BUILD_DIR)/%.o,$(SRC))
 
-.PHONY: all CLI run clean rebuild
+.PHONY: all run clean rebuild
 
-all: CLI
-
-CLI: $(TARGET)
+all: $(TARGET)
 
 $(TARGET): $(OBJ) | bin
 	$(CXX) $(CXXFLAGS) $^ -o $@
@@ -21,7 +19,7 @@ $(BUILD_DIR)/%.o: src/%.cpp | $(BUILD_DIR)
 $(BUILD_DIR):
 	mkdir -p $@
 
-run: CLI
+run: $(TARGET)
 	./$(TARGET)
 
 clean:

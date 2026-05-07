@@ -121,7 +121,6 @@ int main(int argc, char* argv[]) {
 
     try {
         std::string inputPath = readInputPath(argc, argv);
-        Board board = readBoardFromFile(inputPath);
 
         std::string algorithm = readAlgorithm();
         HeuristicMode heuristicMode = HeuristicMode::ImportantSequence;
@@ -134,6 +133,8 @@ int main(int argc, char* argv[]) {
         }
 
         auto startTime = std::chrono::steady_clock::now();
+
+        Board board = readBoardFromFile(inputPath);
 
         Graph graph;
         graph.buildFromBoard(board);

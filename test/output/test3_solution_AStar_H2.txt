@@ -857,5 +857,5 @@ X2**********7***********6X
 X******X*****************X
 X**********X*************X
 XXXXXXXXXXXXXXXXXXXXXXXXXX
->> Waktu eksekusi: 0.171 ms
+>> Waktu eksekusi: 0.370 ms
 >> Banyak iterasi yang dilakukan: 217 iterasi

@@ -4,7 +4,7 @@
 # compile CXX with /usr/bin/c++
 CXX_DEFINES = 
 
-CXX_INCLUDES = -I"/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/include"
+CXX_INCLUDES = -I"/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/include"
 
 CXX_FLAGS = -std=c++17
 

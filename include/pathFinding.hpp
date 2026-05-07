@@ -11,6 +11,7 @@ private:
     int totalCost = 0;
     int totalIterations = 0;
     enum class Algorithm { UCS, AStar, GBFS };
+    int getPriority(Algorithm algorithm, int gCost, int heuristicCost) const;
     void search(const Graph& graph, Algorithm algorithm, HeuristicMode mode);
 
 public:

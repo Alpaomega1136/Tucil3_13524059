@@ -1,1 +1,1 @@
-/usr/bin/c++ CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -o "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/tucil3-gui"  -Wl,-rpath,/usr/local/lib libtucil3_core.a /usr/local/lib/libraylib.so -L/usr/local/lib -lraylib 
+/usr/bin/c++ CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o -o "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/bin/tucil3-gui"  -Wl,-rpath,/usr/local/lib libtucil3_core.a /usr/local/lib/libraylib.so -L/usr/local/lib -lraylib 

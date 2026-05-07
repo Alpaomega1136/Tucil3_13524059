@@ -8,7 +8,7 @@ set(CMAKE_DEPENDS_LANGUAGES
 
 # The set of dependency files which are needed:
 set(CMAKE_DEPENDS_DEPENDENCY_FILES
-  "/mnt/linux-data/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" "CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o" "gcc" "CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o.d"
+  "/home/alpaomega1136/LinuxData/Semester-4/Strategi Algotima (IF2211)/Tugas Kecil 2025-2026/Tucil3_13524059/src/mainGUI.cpp" "CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o" "gcc" "CMakeFiles/tucil3_gui.dir/src/mainGUI.cpp.o.d"
   )
 
 # Targets to which this target links which contain Fortran sources.

@@ -1,7 +1,7 @@
 CMakeFiles/tucil3_core.dir/src/Board.cpp.o: \
- /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/Board.cpp \
+ /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/src/Board.cpp \
  /usr/include/stdc-predef.h \
- /mnt/linux-data/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/Board.hpp \
+ /home/alpaomega1136/LinuxData/Semester-4/Strategi\ Algotima\ (IF2211)/Tugas\ Kecil\ 2025-2026/Tucil3_13524059/include/Board.hpp \
  /usr/include/c++/13/string /usr/include/c++/13/bits/requires_hosted.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/c++config.h \
  /usr/include/x86_64-linux-gnu/c++/13/bits/os_defines.h \

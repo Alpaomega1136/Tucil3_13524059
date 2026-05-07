@@ -78,6 +78,16 @@ int PathFinding::getTotalIterations() const {
     return totalIterations;
 }
 
+int PathFinding::getPriority(Algorithm algorithm, int gCost, int heuristicCost) const {
+    if (algorithm == Algorithm::UCS) {
+        return gCost;
+    }
+    if (algorithm == Algorithm::GBFS) {
+        return heuristicCost;
+    }
+    return gCost + heuristicCost;
+}
+
 void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode mode) {
     path.clear();
     pathPositions.clear();
@@ -90,15 +100,6 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
     }
 
     const int importantCount = graph.getImportantNodeCount();
-    const auto priorityFor = [algorithm](int gCost, int heuristicCost) {
-        if (algorithm == Algorithm::UCS) {
-            return gCost;
-        }
-        if (algorithm == Algorithm::GBFS) {
-            return heuristicCost;
-        }
-        return gCost + heuristicCost;
-    };
 
     std::vector<HistoryRecord> history;
     std::priority_queue<FrontierEntry,
@@ -119,7 +120,7 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
     rootEntry.historyIdx = 0;
     rootEntry.nodeId = root->nodeId;
     rootEntry.nextNumber = 0;
-    rootEntry.priority = priorityFor(rootEntry.gCost, rootHeuristic);
+    rootEntry.priority = getPriority(algorithm, rootEntry.gCost, rootHeuristic);
 
     frontier.push(rootEntry);
     bestCost[StateKey{root->nodeId, 0}] = 0;
@@ -143,9 +144,7 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
             continue;
         }
 
-        const bool reachedFinish = currentNode->type == 'O';
-        const bool completedImportantSequence = current.nextNumber == importantCount;
-        if (reachedFinish && completedImportantSequence) {
+        if (currentNode->type == 'O' && current.nextNumber == importantCount) {
             goalHistoryIdx = current.historyIdx;
             goalCost = current.gCost;
             break;
@@ -175,10 +174,9 @@ void PathFinding::search(const Graph& graph, Algorithm algorithm, HeuristicMode 
             nextEntry.heuristicCost = neighborHeuristic;
             nextEntry.nodeId = edge.neighborId;
             nextEntry.nextNumber = nextNumberAfter;
-            nextEntry.priority = priorityFor(nextEntry.gCost, neighborHeuristic);
+            nextEntry.priority = getPriority(algorithm, nextEntry.gCost, neighborHeuristic);
 
-            history.push_back(
-                HistoryRecord{edge.neighborId, current.historyIdx, edge.direction});
+            history.push_back(HistoryRecord{edge.neighborId, current.historyIdx, edge.direction});
             nextEntry.historyIdx = static_cast<int>(history.size()) - 1;
             frontier.push(nextEntry);
         }

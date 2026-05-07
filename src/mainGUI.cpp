@@ -15,10 +15,10 @@
 #include <vector>
 
 namespace {
-const int WINDOW_WIDTH = 2560;
-const int WINDOW_HEIGHT = 1440;
-const float UI_SCALE = 1.25f;
-const Vector2 UI_OFFSET{80.0f, 45.0f};
+const int WINDOW_WIDTH = 1280;
+const int WINDOW_HEIGHT = 720;
+const float DESIGN_WIDTH = 1920.0f;
+const float DESIGN_HEIGHT = 1080.0f;
 
 Font guiFont;
 bool hasGuiFont = false;
@@ -94,9 +94,9 @@ void solve(GuiState& state) {
         throw std::runtime_error("File input '" + state.inputPath + "' tidak ditemukan.");
     }
 
-    state.board = readBoardFromFile(resolvedInputPath);
-
     auto startTime = std::chrono::steady_clock::now();
+
+    state.board = readBoardFromFile(resolvedInputPath);
 
     Graph graph;
     graph.buildFromBoard(state.board);
@@ -175,6 +175,18 @@ Vector2 getGuiMousePosition() {
     return GetScreenToWorld2D(GetMousePosition(), guiCamera);
 }
 
+void updateGuiCamera() {
+    float scaleX = static_cast<float>(GetScreenWidth()) / DESIGN_WIDTH;
+    float scaleY = static_cast<float>(GetScreenHeight()) / DESIGN_HEIGHT;
+    float scale = std::min(scaleX, scaleY);
+    Vector2 offset{
+        (static_cast<float>(GetScreenWidth()) - DESIGN_WIDTH * scale) / 2.0f,
+        (static_cast<float>(GetScreenHeight()) - DESIGN_HEIGHT * scale) / 2.0f
+    };
+
+    guiCamera = Camera2D{offset, Vector2{0.0f, 0.0f}, 0.0f, scale};
+}
+
 bool drawButton(Rectangle rect, const std::string& text, bool selected = false) {
     Vector2 mouse = getGuiMousePosition();
     bool hovered = CheckCollisionPointRec(mouse, rect);
@@ -203,11 +215,36 @@ void drawPanel(Rectangle rect, const std::string& title = "") {
     }
 }
 
+std::string fitTextToWidth(const std::string& text, int fontSize, float maxWidth) {
+    if (measureTextWidth(text, fontSize) <= maxWidth) {
+        return text;
+    }
+
+    std::string fitted = text;
+    const std::string suffix = "...";
+    while (!fitted.empty() && measureTextWidth(fitted + suffix, fontSize) > maxWidth) {
+        fitted.pop_back();
+    }
+
+    if (fitted.empty()) {
+        return suffix;
+    }
+    return fitted + suffix;
+}
+
 void drawMetric(Rectangle rect, const std::string& label, const std::string& value) {
     DrawRectangleRounded(rect, 0.08f, 8, Color{75, 75, 75, 255});
     drawRoundedLines(rect, 0.08f, 8, 1.0f, Color{110, 110, 110, 255});
     drawGuiText(label, static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 10), 20, Color{200, 200, 200, 255});
-    drawGuiText(value, static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 40), 30, RAYWHITE);
+
+    int fontSize = 30;
+    float maxWidth = rect.width - 32;
+    std::string shown = value;
+    while (fontSize > 18 && measureTextWidth(shown, fontSize) > maxWidth) {
+        --fontSize;
+    }
+    shown = fitTextToWidth(shown, fontSize, maxWidth);
+    drawGuiText(shown, static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 40), fontSize, RAYWHITE);
 }
 
 void drawRoundedLines(Rectangle rect, float roundness, int segments, float lineThick, Color color) {
@@ -373,21 +410,23 @@ std::string heuristicName(HeuristicMode mode) {
 
 int main() {
     SetTraceLogLevel(LOG_WARNING);
+    SetConfigFlags(FLAG_WINDOW_RESIZABLE);
     InitWindow(WINDOW_WIDTH, WINDOW_HEIGHT, "Tucil3 Ice Sliding Puzzle Solver");
     SetTargetFPS(60);
     loadGuiFont();
-    guiCamera = Camera2D{UI_OFFSET, Vector2{0.0f, 0.0f}, 0.0f, UI_SCALE};
+    updateGuiCamera();
 
     GuiState state;
     bool inputActive = false;
 
     while (!WindowShouldClose()) {
+        updateGuiCamera();
+
         BeginDrawing();
         ClearBackground(Color{45, 45, 45, 255});
         BeginMode2D(guiCamera);
 
         drawGuiText("Ice Sliding Puzzle Solver", 44, 30, 60, RAYWHITE);
-        drawGuiText("Tucil3_13524059", 44, 102, 30, Color{200, 200, 200, 255});
 
         Rectangle controlPanel{36, 126, 430, 930};
         Rectangle boardPanel{498, 126, 1386, 842};
